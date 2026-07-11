@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-07
+lastUpdated: 2026-07-11
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -413,6 +413,36 @@ In addition to the main config file, GitHub Copilot CLI reads two optional per-p
 
 These files follow the same format as `config.json` and are loaded after the global config, so they can tailor CLI behaviour—including hook definitions—per repository without touching `.github/`.
 
+### Repository Model Pinning with `.github/copilot/settings.json` (v1.0.70+)
+
+Trusted repositories can pin the model, effort level, and context tier for all users who open that repository, and can also extend the URL, MCP server, and skill deny lists. This is useful for enforcing consistent AI behaviour across a team — for example, always using a high-reasoning model for security reviews or restricting which external URLs agents can fetch.
+
+Create `.github/copilot/settings.json` in your repository:
+
+```json
+{
+  "model": "claude-sonnet-4.6",
+  "effortLevel": "high",
+  "contextTier": "long_context",
+  "denyUrls": ["https://internal-secrets.example.com"],
+  "denyMcpServers": ["untrusted-server"],
+  "denySkills": ["risky-skill"]
+}
+```
+
+**Supported fields**:
+
+| Field | Description |
+|-------|-------------|
+| `model` | Pin a specific model (or family alias) for all sessions in this repository |
+| `effortLevel` | Force a reasoning effort level: `low`, `medium`, or `high` |
+| `contextTier` | Set the context tier: `default` or `long_context` |
+| `denyUrls` | Extend the URL allow/deny list — URLs matching these patterns cannot be fetched by agents |
+| `denyMcpServers` | Extend the MCP server deny list — agents cannot connect to these servers |
+| `denySkills` | Extend the skill deny list — these skills cannot be loaded in this repository |
+
+> **Trust model**: These settings apply when Copilot considers the repository trusted. When working in an untrusted repository, these restrictions are not enforced. Deny list extensions stack with your user-level deny lists.
+
 > **Important (v1.0.36+)**: Custom agents, skills, and commands placed in `~/.claude/` (the Claude Code user directory) are **no longer loaded** by GitHub Copilot CLI. Only `~/.claude/settings.json` is read for configuration. If you previously stored personal agents or skills in `~/.claude/`, move them to the supported locations: `~/.copilot/agents/` for user-level agents, `~/.copilot/skills/` or `~/.agents/skills/` for personal skills, or `.github/agents/` and `.github/skills/` in your repositories for project-level customizations.
 
 ### Model Picker
@@ -432,6 +462,16 @@ The `/settings` command (v1.0.61+) opens an interactive dialog to browse and edi
 ```
 
 The settings dialog supports search — type to filter settings by name. Changes take effect immediately.
+
+**Scope tabs** (v1.0.71+): The `/settings` dashboard now includes **Repo** and **Repo (local)** scope tabs. Switch to the Repo tab to view and edit settings that apply to the current repository (stored in `.github/copilot/settings.json`), and Repo (local) for local-only overrides. You can also scope the `/settings` and `/model` commands directly:
+
+```
+/settings --repo          # edit repository-level settings
+/settings --local         # edit local-only settings (not committed)
+/model --repo             # pin the model for this repository
+```
+
+**Pinned prompts** (v1.0.71+): The `/settings` dialog includes a **Pinned Prompts** setting to control which prompts are pinned in the prompt input bar. Pinned prompts appear as quick-access buttons so you can re-run common prompts without retyping them.
 
 GitHub Copilot CLI has two commands for managing session state, with distinct behaviours:
 
@@ -591,6 +631,14 @@ The `/ask` command lets you ask a quick question without affecting your conversa
 ```
 /ask What does the `retry` utility in src/utils do?
 ```
+
+The `/refine` command *(v1.0.70+)* rewrites a rough, stream-of-consciousness prompt into a clear, structured one. Use it when you have a general idea but want Copilot to sharpen the wording before acting on it:
+
+```
+/refine
+```
+
+After typing `/refine`, you provide your rough prompt text and the CLI produces a polished version you can review and edit before submitting. This is particularly useful for complex tasks where a well-structured prompt leads to significantly better results.
 
 The `/env` command shows all loaded environment details — instructions, MCP servers, skills, agents, and plugins — in a single view. Use it to verify that the right resources are active for the current session:
 
