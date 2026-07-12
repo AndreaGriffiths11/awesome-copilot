@@ -3,7 +3,7 @@ title: 'Installing and Using Plugins'
 description: 'Learn how to find, install, and manage plugins that extend GitHub Copilot CLI with reusable agents, skills, hooks, and integrations.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-24
+lastUpdated: 2026-07-12
 estimatedReadingTime: '8 minutes'
 tags:
   - plugins
@@ -178,6 +178,24 @@ Or from an interactive session:
 
 > **Deprecation notice**: Installing plugins directly from a GitHub repository URL, raw URL, or local file path (e.g., `copilot plugin install github/awesome-copilot`) is deprecated and will be removed in a future release. Use marketplace-based installation instead.
 
+### Pinning a Plugin to an Exact Commit (v1.0.70+)
+
+For reproducible environments, you can pin a plugin to an exact commit SHA using the `sha` field in the plugin source configuration. This ensures everyone on your team uses identical plugin content regardless of what the marketplace's default version points to:
+
+```json
+{
+  "extraKnownMarketplaces": [
+    {
+      "name": "my-org-plugins",
+      "source": "my-org/internal-plugins",
+      "sha": "a1b2c3d4e5f6..."
+    }
+  ]
+}
+```
+
+Pinning is especially useful in CI pipelines or regulated environments where unexpected plugin updates could affect automated workflows.
+
 ### From VS Code
 
 Browse to the plugin via `@agentPlugins` in the Extensions search view or via **Chat: Plugins** in the Command Palette, then click **Install**.
@@ -199,6 +217,16 @@ copilot plugin marketplace update
 # Remove a plugin
 copilot plugin uninstall my-plugin
 ```
+
+### /plugins Dashboard (v1.0.69+)
+
+Inside an active Copilot CLI session, the `/plugins` command opens an interactive **plugins dashboard** that lets you browse, enable, disable, and manage all installed plugins without leaving the session:
+
+```
+/plugins
+```
+
+The dashboard shows each installed plugin, its components (agents, skills, hooks, MCP servers), and its current status. You can also run `/plugin list` mid-session to get a quick overview of what's installed.
 
 ### Loading Plugins from a Local Directory
 

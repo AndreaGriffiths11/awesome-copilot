@@ -3,7 +3,7 @@ title: 'Understanding MCP Servers'
 description: 'Learn how Model Context Protocol servers extend GitHub Copilot with access to external tools, databases, and APIs.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-06
+lastUpdated: 2026-07-12
 estimatedReadingTime: '8 minutes'
 tags:
   - mcp
@@ -273,6 +273,12 @@ If your team has internal tools or proprietary APIs, you can build custom MCP se
 | **Prompts** | Pre-built conversation templates | Common troubleshooting flows |
 
 MCP server SDKs are available in [Python](https://github.com/modelcontextprotocol/python-sdk), [TypeScript](https://github.com/modelcontextprotocol/typescript-sdk), and other languages. Browse the [Agents Directory](../../agents/) for examples of agents built around MCP server expertise.
+
+### Managing Live MCP Servers via SDK (v1.0.70+)
+
+The Copilot CLI SDK now exposes APIs to **manage MCP servers in running sessions** programmatically. This means external tools or automation scripts can add, remove, or query MCP servers attached to an active session without restarting it — useful for dynamic environments where server availability changes at runtime (for example, spinning up a containerized database for a test run and attaching it mid-session).
+
+In addition, the CLI supports paginated `session.mcp.resources` RPCs — `read`, `list`, and `listTemplates` — allowing clients to enumerate and read MCP resource endpoints exposed by attached servers. This unlocks richer automation patterns where an external process can discover and consume MCP resources exposed during a live session.
 
 ## Troubleshooting MCP Connection Issues
 

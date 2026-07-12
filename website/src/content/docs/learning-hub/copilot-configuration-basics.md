@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-07
+lastUpdated: 2026-07-12
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -42,6 +42,20 @@ Repository settings live in your codebase (typically in `.github/` although some
 - Reusable skills for common tasks
 - Specialized agents for project workflows
 - Custom agents for domain expertise
+
+**Repository-pinned model and effort** (v1.0.70+): A trusted repository can now pin the model, reasoning effort level, and context tier for all sessions opened in that repository, and extend the URL/MCP/skill deny lists. Add a `.github/copilot/settings.json` file to your repository:
+
+```json
+{
+  "model": "claude-sonnet-4.6",
+  "effortLevel": "high",
+  "contextTier": "long_context",
+  "denyMcpServers": ["untrusted-server"],
+  "denySkills": ["unsafe-skill"]
+}
+```
+
+This ensures that everyone who opens the repository in Copilot CLI uses the specified model and effort settings by default — useful for cost management, compliance, or ensuring consistency across a team. Users can still override these locally.
 
 **When to use**: For repository-wide standards, project-specific best practices, and reusable customizations that should be version-controlled and shared.
 
@@ -423,6 +437,8 @@ The model picker opens in a **full-screen view** with inline reasoning effort ad
 
 **Model family aliases** (v1.0.64+): Instead of typing a full model name, you can use short family aliases in the model setting: `opus`, `sonnet`, `haiku` (Anthropic), and `gpt`, `gemini` (Google/OpenAI). The CLI resolves the alias to the latest available model in that family. This is especially useful in scripts or configuration files where you want to track the best model in a family without hardcoding a version string.
 
+**GPT-5.6** (v1.0.70+): GPT-5.6 is now available as a model choice in the CLI model picker. Select it via `/model` or set it in your configuration.
+
 ### CLI Session Commands
 
 The `/settings` command (v1.0.61+) opens an interactive dialog to browse and edit all user settings in one place. Use it to discover available settings, toggle options, and update values without manually editing your config file:
@@ -431,7 +447,14 @@ The `/settings` command (v1.0.61+) opens an interactive dialog to browse and edi
 /settings
 ```
 
-The settings dialog supports search — type to filter settings by name. Changes take effect immediately.
+The settings dialog supports search — type to filter settings by name. Changes take effect immediately. In v1.0.70+, `/settings` accepts `--repo` and `--local` flags to open the repository-scoped or local-override settings view directly:
+
+```
+/settings --repo    # open the repository settings (`.github/copilot/settings.json`)
+/settings --local   # open the local override settings (`.claude/settings.local.json`)
+```
+
+Similarly, `/model --repo` and `/model --local` let you inspect or set the model in a specific settings scope.
 
 GitHub Copilot CLI has two commands for managing session state, with distinct behaviours:
 
@@ -591,6 +614,14 @@ The `/ask` command lets you ask a quick question without affecting your conversa
 ```
 /ask What does the `retry` utility in src/utils do?
 ```
+
+The `/refine` command (v1.0.70+) rewrites a rough, stream-of-consciousness prompt into a clear, well-structured one. Use it when you have an idea but aren't sure how to phrase it effectively — paste or type your rough thoughts and `/refine` returns a polished version ready to send:
+
+```
+/refine fix the thing in the auth module that breaks when users have special chars in their names
+```
+
+This is particularly useful for complex tasks where prompt clarity directly affects how well the agent understands your intent. The refined prompt replaces your input in the editor, so you can review and adjust it before sending.
 
 The `/env` command shows all loaded environment details — instructions, MCP servers, skills, agents, and plugins — in a single view. Use it to verify that the right resources are active for the current session:
 
