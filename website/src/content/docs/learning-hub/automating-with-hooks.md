@@ -3,7 +3,7 @@ title: 'Automating with Hooks'
 description: 'Learn how to use hooks to automate lifecycle events like formatting, linting, and governance checks during Copilot agent sessions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-25
+lastUpdated: 2026-07-13
 estimatedReadingTime: '8 minutes'
 tags:
   - hooks
@@ -390,7 +390,15 @@ Block dangerous commands before they execute. Use the `matcher` field to target 
 }
 ```
 
-The `preToolUse` hook receives JSON input with details about the tool being called. Your script can inspect this input and exit with a non-zero code to **deny** the tool execution, or exit with zero to **approve** it.
+The `preToolUse` hook receives JSON input with details about the tool being called. Your script can inspect this input and use exit codes to control execution:
+
+| Exit Code | Behaviour |
+|-----------|-----------|
+| `0` | **Approve** — the tool call proceeds normally |
+| `1` (or any non-zero except 2) | **Deny and stop** — the tool call is blocked and the agent session ends with an error |
+| `2` *(v1.0.70+)* | **Deny silently** — the tool call is blocked but the agent session continues; the agent is informed the tool was denied and can try an alternative approach |
+
+Exit code `2` is particularly useful for soft-blocking rules where you want the agent to recover gracefully rather than halt. For example, you can block access to a production config file without aborting the entire task:
 
 ### Modifying Tool Arguments with preToolUse
 
@@ -642,7 +650,7 @@ echo "Pre-commit checks passed ✅"
 ## Best Practices
 
 - **Keep hooks fast**: Hooks run synchronously, so slow hooks delay the agent. Set tight timeouts and optimize scripts.
-- **Use non-zero exit codes to block**: If a hook exits with a non-zero code, the triggering action is blocked. Use this for must-pass checks.
+- **Use non-zero exit codes to block**: If a hook exits with a non-zero code, the triggering action is blocked. For `preToolUse`, prefer exit code `2` *(v1.0.70+)* to deny the tool call without stopping the agent session (letting the agent try an alternative), or exit code `1` to block and abort the session for must-fail violations.
 - **Bundle scripts in the hook folder**: Keep related scripts alongside the hooks.json for portability.
 - **Document setup requirements**: If hooks depend on tools being installed (Prettier, ESLint), document this in the README.
 - **Test locally first**: Run hook scripts manually before relying on them in agent sessions.

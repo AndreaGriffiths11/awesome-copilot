@@ -3,7 +3,7 @@ title: 'Getting Started with the GitHub Copilot app'
 description: 'Learn about the GitHub Copilot app, a desktop experience built for agent-native development. Understand its key features and who it''s for.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-17
+lastUpdated: 2026-07-13
 estimatedReadingTime: '8 minutes'
 tags:
   - copilot-app
@@ -87,6 +87,19 @@ For a hands-on guide to building canvases with `/create-canvas`, see [Working wi
 - Can automatically merge when all conditions are met
 
 You control the automation level—decide whether Agent Merge should just run CI, address feedback, or go all the way to merging. It's a way to let Copilot handle the tedious parts of the review and merge process.
+
+### Copilot Vision (GA as of VS Code 1.128)
+
+**Copilot Vision** lets you attach images directly to your Copilot chat messages. You can share screenshots, diagrams, UI mockups, or error screenshots, and Copilot will incorporate the visual content as part of its analysis.
+
+Common use cases:
+
+- **UI debugging**: Paste a screenshot of a broken layout and ask Copilot to identify the CSS issue
+- **Design-to-code**: Share a Figma screenshot or wireframe and have Copilot scaffold the corresponding component
+- **Error screenshots**: Upload a screenshot of a runtime error or crash dialog when the text isn't easily copyable
+- **Architecture diagrams**: Share a whiteboard diagram and ask Copilot to review or suggest improvements
+
+To attach an image, use the paperclip (attach) icon in the VS Code Copilot Chat input, or drag and drop an image file directly into the chat. Vision is available in VS Code Copilot Chat and the GitHub Copilot app.
 
 ## Who is the Copilot app for?
 

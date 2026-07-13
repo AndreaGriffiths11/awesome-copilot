@@ -3,7 +3,7 @@ title: 'Installing and Using Plugins'
 description: 'Learn how to find, install, and manage plugins that extend GitHub Copilot CLI with reusable agents, skills, hooks, and integrations.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-24
+lastUpdated: 2026-07-13
 estimatedReadingTime: '8 minutes'
 tags:
   - plugins
@@ -184,7 +184,19 @@ Browse to the plugin via `@agentPlugins` in the Extensions search view or via **
 
 ## Managing Plugins
 
-Once installed, plugins are managed with a few simple commands:
+### The /plugins Dashboard (v1.0.69+)
+
+Inside any Copilot CLI session, run `/plugins` to open the **plugins dashboard** — an interactive view that shows all your installed plugins, their included components (agents, skills, hooks), and their current status. From the dashboard you can:
+
+- Browse installed plugins and see what each one provides
+- Quickly enable or disable individual plugins without uninstalling them
+- Jump to a plugin's marketplace page or README for documentation
+
+This is the fastest way to audit what's installed and troubleshoot unexpected agent or skill behavior.
+
+### Command-Line Plugin Management
+
+Once installed, plugins are also managed with command-line commands:
 
 ```bash
 # List all installed plugins
@@ -199,6 +211,16 @@ copilot plugin marketplace update
 # Remove a plugin
 copilot plugin uninstall my-plugin
 ```
+
+### Pinning a Plugin to a Specific Commit (v1.0.70+)
+
+By default, `copilot plugin update` fetches the latest published version of a plugin. If your project needs a reproducible environment — for example in a CI pipeline or when a recent plugin update broke something — you can **pin a plugin to an exact commit SHA**:
+
+```bash
+copilot plugin install my-plugin@awesome-copilot --sha abc1234def5678
+```
+
+The `--sha` flag locks the plugin to that exact commit. Updates will not change the version until you explicitly pass a new SHA or remove the pin. Pinned plugins are marked in `/plugin list` and the `/plugins` dashboard so you can tell at a glance which ones are locked.
 
 ### Loading Plugins from a Local Directory
 
