@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-07
+lastUpdated: 2026-07-14
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -278,7 +278,29 @@ When writing TypeScript code:
 
 **When to use**: For project-wide coding standards, architectural patterns, or technology-specific conventions that should influence all suggestions.
 
-## Setting Up Team Configuration
+### Repository Model and Effort Pinning (v1.0.70+)
+
+A trusted repository can lock the model, reasoning effort level, and context tier for all sessions opened inside it, and extend the URL, MCP, and skill deny lists. These settings live in `.github/copilot/settings.json` (different from `.claude/settings.json` or `.github/copilot-settings.json`):
+
+```json
+{
+  "model": "claude-sonnet-4.6",
+  "effortLevel": "high",
+  "contextTier": "long_context",
+  "denyLists": {
+    "urls": ["http://internal-only.example.com"],
+    "mcpServers": ["untrusted-server"],
+    "skills": ["blocked-skill"]
+  }
+}
+```
+
+When this file is present and the repository is trusted, the CLI applies these overrides for every session in the repository. This is useful for:
+- Ensuring all team members use the same model for consistent results
+- Enforcing a minimum reasoning effort level for production-critical repositories
+- Blocking specific skills or MCP servers that are inappropriate for the project
+
+> **Security**: Repository-pinned settings only apply when the repository is trusted. Untrusted repositories cannot force model or effort changes.
 
 Follow these steps to establish effective team-wide Copilot configuration:
 
@@ -429,9 +451,11 @@ The `/settings` command (v1.0.61+) opens an interactive dialog to browse and edi
 
 ```
 /settings
+/settings --repo    # edit the repository-scoped settings file (.github/copilot/settings.json) (v1.0.70+)
+/settings --local   # edit a local override file not committed to version control (v1.0.70+)
 ```
 
-The settings dialog supports search — type to filter settings by name. Changes take effect immediately.
+The settings dialog supports search — type to filter settings by name. Changes take effect immediately. The `--repo` flag edits `.github/copilot/settings.json` in the repository root (shared with the team via version control), while `--local` edits a local-only override that is not committed to the repository.
 
 GitHub Copilot CLI has two commands for managing session state, with distinct behaviours:
 
@@ -586,6 +610,14 @@ Use `/diagnose` when a session is behaving unexpectedly — it inspects session 
 
 **Inline image rendering** (v1.0.64+): The CLI can display images inline in the terminal when your terminal supports it. If an MCP tool, agent, or attachment returns an image, it is rendered directly in the conversation timeline rather than shown as a file path or URL. This works in terminals with image protocol support (such as iTerm2, Kitty, Wezterm, and tmux with appropriate configuration).
 
+The `/refine` command *(v1.0.70+)* rewrites a rough, stream-of-consciousness prompt into a clear, well-structured one. Use it when you have a general idea but find it hard to articulate precisely — paste or type your rough request and `/refine` will produce a cleaner version you can edit and submit:
+
+```
+/refine
+```
+
+This is particularly useful for complex requests where prompt quality significantly affects output quality.
+
 The `/ask` command lets you ask a quick question without affecting your conversation history. The current session context is preserved, so you can use it for one-off lookups without derailing an ongoing task. Responses are rendered as full markdown, including tables and formatted links:
 
 ```
@@ -696,6 +728,16 @@ copilot --autopilot --max-autopilot-continues 10 "Refactor the authentication mo
 ```
 
 Set it higher for long-running tasks, or lower for tasks where you want more frequent checkpoints. Setting it to `0` disables automatic continuation entirely.
+
+The `--sandbox` and `--no-sandbox` flags *(v1.0.70+)* turn the OS-level shell sandbox on or off for the **current session only**, without changing your saved sandbox setting. This is useful when you want to temporarily adjust sandbox behavior for a specific task (for example, a script that needs filesystem access outside the sandboxed paths) without permanently modifying your configuration:
+
+```bash
+copilot --sandbox       # enable the OS-level shell sandbox for this session
+copilot --no-sandbox    # disable the OS-level shell sandbox for this session
+copilot -p "..." --no-sandbox  # useful in combination with prompt mode (-p)
+```
+
+> **Note**: These flags affect only the current session. Your saved sandbox setting (visible in `/settings`) is unchanged and takes effect again in the next session.
 
 The `--attachment` flag (available in prompt mode, `-p`) lets you attach files — images or native documents — to the initial prompt in non-interactive mode:
 
