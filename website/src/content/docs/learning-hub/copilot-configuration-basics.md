@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-07
+lastUpdated: 2026-07-15
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -413,6 +413,23 @@ In addition to the main config file, GitHub Copilot CLI reads two optional per-p
 
 These files follow the same format as `config.json` and are loaded after the global config, so they can tailor CLI behaviour—including hook definitions—per repository without touching `.github/`.
 
+#### Repository-pinned model and policy settings (v1.0.70+)
+
+Trusted repositories can also use `.github/copilot/settings.json` to enforce model, effort, and context choices as well as extend the deny lists for all users working in that repository:
+
+```json
+{
+  "model": "claude-sonnet-4.6",
+  "effortLevel": "high",
+  "contextTier": "long_context",
+  "denyUrls": ["example-internal.com"],
+  "denyMcpTools": ["dangerous-tool"],
+  "denySkills": ["experimental-skill"]
+}
+```
+
+This is especially useful in enterprise repositories where you want to ensure a consistent model and reasoning effort across the team, or lock down which external URLs and MCP tools are accessible. Settings here layer on top of any `allowed_models.txt` policy and user-level config.
+
 > **Important (v1.0.36+)**: Custom agents, skills, and commands placed in `~/.claude/` (the Claude Code user directory) are **no longer loaded** by GitHub Copilot CLI. Only `~/.claude/settings.json` is read for configuration. If you previously stored personal agents or skills in `~/.claude/`, move them to the supported locations: `~/.copilot/agents/` for user-level agents, `~/.copilot/skills/` or `~/.agents/skills/` for personal skills, or `.github/agents/` and `.github/skills/` in your repositories for project-level customizations.
 
 ### Model Picker
@@ -504,11 +521,19 @@ The `/cd` command changes the working directory for the current session. Since v
 
 This is useful when you have multiple backgrounded sessions each focused on a different project directory.
 
-The `/worktree` command (v1.0.61+, also aliased `/move`) creates a new git worktree and switches into it, moving any uncommitted changes along. This lets you start working on a parallel branch without leaving your current terminal session:
+The `/worktree` command (v1.0.61+) creates a new git worktree and switches into it, **leaving your uncommitted changes in the current worktree**. This lets you start working on a parallel branch from a clean state:
 
 ```
 /worktree my-feature-branch
 ```
+
+The companion `/move` command (v1.0.71+) also creates a new worktree, but **carries your uncommitted changes into the new worktree** rather than leaving them behind:
+
+```
+/move my-feature-branch
+```
+
+Use `/worktree` when you want a clean branch and intend to commit your current changes separately. Use `/move` when you want to continue with your current work in a new branch.
 
 In v1.0.66+, you can pass a task description to `/worktree` to name the branch from the task and immediately run the task as the first prompt in the new worktree — all in one step:
 
@@ -551,6 +576,14 @@ The `/share html` command exports the current session — including conversation
 ```
 
 The exported file contains everything needed to view the session without a network connection and can be shared with teammates or stored for later reference. This complements `/share` (which shares via URL) for cases where an offline or attached format is preferred.
+
+The `/refine` command (v1.0.70+) rewrites a rough, stream-of-consciousness prompt into a clear, well-structured one before it is sent to the model. This is useful when you want to turn a quick brain-dump into a precise task description:
+
+```
+/refine fix the thing that breaks when you have more than 10 items and click save too fast
+```
+
+The agent will reformulate your prompt, show you the refined version, and — unless you edit it — send that to the model. Use `/refine` before long or complex tasks to get sharper results without needing to carefully craft the prompt yourself.
 
 The `/chronicle` command opens an interactive timeline of everything the agent has done in the current session. It shows file changes, tool calls, and conversation turns in chronological order, letting you review the full arc of the session at a glance:
 
@@ -688,6 +721,8 @@ copilot --plan          # start in plan mode (propose without executing)
 ```
 
 This is useful in scripts or CI pipelines where you want the CLI to immediately begin working in a specific mode without an interactive prompt.
+
+> **Plan mode hard-blocks (v1.0.71+)**: Plan mode now strictly prevents the agent from making workspace changes. All built-in tool calls that would modify the workspace (file edits, shell mutations, opening pull requests) are blocked at the runtime level — not just discouraged. MCP tools and external tools are still allowed. This makes plan mode a reliable "read-only proposal" mode rather than just a soft suggestion.
 
 The `--max-autopilot-continues` flag controls how many times Copilot can automatically continue in autopilot mode before pausing for confirmation. The default is 5:
 
