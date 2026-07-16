@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-07
+lastUpdated: 2026-07-16
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -412,6 +412,21 @@ In addition to the main config file, GitHub Copilot CLI reads two optional per-p
 - `.claude/settings.local.json` — local overrides (add to `.gitignore` for personal adjustments)
 
 These files follow the same format as `config.json` and are loaded after the global config, so they can tailor CLI behaviour—including hook definitions—per repository without touching `.github/`.
+
+**Repository model pinning** *(v1.0.70+)*: A trusted repository can also pin the AI model, effort level, and context tier for everyone working in it via `.github/copilot/settings.json`. This file is separate from the `.claude/settings.json` files above — it is part of the repository's `.github/` folder and is version-controlled alongside agents and instructions:
+
+```json
+{
+  "model": "claude-sonnet-4",
+  "reasoningEffort": "high",
+  "contextTier": "full",
+  "urlDenyList": ["http://internal-only.corp/"],
+  "mcpDenyList": ["*-untrusted-*"],
+  "skillDenyList": ["experimental-*"]
+}
+```
+
+This is useful when a project requires a specific model for regulatory or reproducibility reasons, or when you want to extend the default deny lists to restrict certain URLs, MCP servers, or skills for everyone working in the repository.
 
 > **Important (v1.0.36+)**: Custom agents, skills, and commands placed in `~/.claude/` (the Claude Code user directory) are **no longer loaded** by GitHub Copilot CLI. Only `~/.claude/settings.json` is read for configuration. If you previously stored personal agents or skills in `~/.claude/`, move them to the supported locations: `~/.copilot/agents/` for user-level agents, `~/.copilot/skills/` or `~/.agents/skills/` for personal skills, or `.github/agents/` and `.github/skills/` in your repositories for project-level customizations.
 
