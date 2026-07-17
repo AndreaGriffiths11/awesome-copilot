@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-07
+lastUpdated: 2026-07-17
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -415,6 +415,32 @@ These files follow the same format as `config.json` and are loaded after the glo
 
 > **Important (v1.0.36+)**: Custom agents, skills, and commands placed in `~/.claude/` (the Claude Code user directory) are **no longer loaded** by GitHub Copilot CLI. Only `~/.claude/settings.json` is read for configuration. If you previously stored personal agents or skills in `~/.claude/`, move them to the supported locations: `~/.copilot/agents/` for user-level agents, `~/.copilot/skills/` or `~/.agents/skills/` for personal skills, or `.github/agents/` and `.github/skills/` in your repositories for project-level customizations.
 
+### Repository-Pinned Model and Effort (v1.0.70+)
+
+Trusted repositories can **lock** the model, reasoning effort level, and context tier for all sessions started from them using `.github/copilot/settings.json`. This is useful for enforcing a specific model or cost profile across a team — for example, requiring a capable model for a complex codebase, or capping effort for fast CI workflows:
+
+```json
+{
+  "model": "claude-sonnet-4.6",
+  "effortLevel": "high",
+  "contextTier": "full"
+}
+```
+
+The same file can also **extend** the URL, MCP, and skill deny lists to restrict what agents can access within the repository:
+
+```json
+{
+  "model": "claude-sonnet-4.6",
+  "effortLevel": "medium",
+  "denyUrls": ["https://internal-only.example.com"],
+  "denyMcpServers": ["untrusted-server"],
+  "denySkills": ["risky-skill"]
+}
+```
+
+> **Security**: These settings only apply when the repository folder is **trusted** by the CLI. Untrusted repositories cannot set pinned models or deny lists.
+
 ### Model Picker
 
 The model picker opens in a **full-screen view** with inline reasoning effort adjustment. Use the **← / →** arrow keys to change the reasoning effort level (`low`, `medium`, `high`) directly from the picker without leaving the session. The current reasoning effort level is also displayed in the model header (e.g., `claude-sonnet-4.6 (high)`) so you always know which level is active.
@@ -504,7 +530,7 @@ The `/cd` command changes the working directory for the current session. Since v
 
 This is useful when you have multiple backgrounded sessions each focused on a different project directory.
 
-The `/worktree` command (v1.0.61+, also aliased `/move`) creates a new git worktree and switches into it, moving any uncommitted changes along. This lets you start working on a parallel branch without leaving your current terminal session:
+The `/worktree` command (v1.0.61+) creates a new git worktree and switches into it, **leaving any uncommitted changes behind** in your current worktree. Use this when you want to start fresh on a parallel branch without carrying your in-progress work:
 
 ```
 /worktree my-feature-branch
@@ -518,7 +544,15 @@ In v1.0.66+, you can pass a task description to `/worktree` to name the branch f
 
 This creates a branch named from your task description and begins working on it immediately, making it easy to spin up parallel work without stopping to think of a branch name.
 
-After the command runs, the session is inside the new worktree. Use this when you want to work on a second task in parallel without stashing changes or opening a new terminal. In v1.0.64+ you can also use the experimental `--worktree` flag at startup (`copilot -w [name]`) to create or reuse a worktree under `<repo>.worktrees/` before the session begins.
+The `/move` command (v1.0.71+) is the companion to `/worktree` — it creates a new worktree and **carries your uncommitted changes into it**. Use this when you have started work in the wrong branch and want to transfer it to a new one:
+
+```
+/move my-feature-branch
+```
+
+The key distinction: `/worktree` leaves uncommitted changes behind (clean slate); `/move` brings them with you (work transfer).
+
+After either command runs, the session is inside the new worktree. In v1.0.64+ you can also use the experimental `--worktree` flag at startup (`copilot -w [name]`) to create or reuse a worktree under `<repo>.worktrees/` before the session begins.
 
 The `/every` command (also available as `/loop` since v1.0.64) schedules a recurring prompt to run automatically at a specified interval. The companion `/after` command runs a prompt once after a specified delay. Both are useful for self-paced automation — polling for results, periodically summarizing progress, or triggering other slash commands on a timer:
 
@@ -585,6 +619,14 @@ Use `/diagnose` when a session is behaving unexpectedly — it inspects session 
 **Shell command history in normal mode** (v1.0.65+): The **↑/↓** arrow keys and **Ctrl+R** reverse search now include past shell commands (commands run with `!`) while you are in normal (non-shell) input mode. Previously you had to type `!` to enter shell mode before history worked. Now you can recall and re-run a shell command without switching modes first — useful for quickly repeating a build, test, or diagnostic command from earlier in the session.
 
 **Inline image rendering** (v1.0.64+): The CLI can display images inline in the terminal when your terminal supports it. If an MCP tool, agent, or attachment returns an image, it is rendered directly in the conversation timeline rather than shown as a file path or URL. This works in terminals with image protocol support (such as iTerm2, Kitty, Wezterm, and tmux with appropriate configuration).
+
+The `/refine` command (v1.0.70+) rewrites a rough, stream-of-consciousness prompt into a clear, well-structured one. Use it before sending a complex or rambling request to get a more precise, actionable version:
+
+```
+/refine add dark mode support to the settings page using our existing css variables also check that we handle the system preference and persist user choice somewhere
+```
+
+After `/refine`, the cleaned-up prompt is placed into your input for review — you can edit it further before sending or press Enter to use it as-is. This is useful for capturing a quick idea without worrying about phrasing, then letting Copilot clarify it into an effective prompt.
 
 The `/ask` command lets you ask a quick question without affecting your conversation history. The current session context is preserved, so you can use it for one-off lookups without derailing an ongoing task. Responses are rendered as full markdown, including tables and formatted links:
 
