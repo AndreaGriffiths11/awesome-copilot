@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-07
+lastUpdated: 2026-07-18
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -160,6 +160,8 @@ A well-organized Copilot configuration directory looks like this:
 ├── agents/
 │   ├── terraform-expert.agent.md
 │   └── api-reviewer.agent.md
+├── copilot/
+│   └── settings.json          ← repo-level Copilot settings (v1.0.70+)
 ├── skills/
 │   ├── generate-tests/
 │   │   └── SKILL.md
@@ -169,6 +171,34 @@ A well-organized Copilot configuration directory looks like this:
     ├── typescript-conventions.instructions.md
     └── api-design.instructions.md
 ```
+
+### Repository Copilot Settings (v1.0.70+)
+
+Beyond the file-based customizations above, you can pin session defaults and extend security deny lists for all contributors by committing a `.github/copilot/settings.json` file to your repository. When a contributor opens a session in the repository, these settings override their personal defaults — useful for enforcing a cost-efficient model, consistent reasoning effort, or organization-mandated security policies.
+
+**Example `.github/copilot/settings.json`**:
+
+```json
+{
+  "model": "claude-sonnet-4",
+  "reasoningEffort": "medium",
+  "contextTier": "default",
+  "denyUrls": ["https://internal-secrets.example.com"],
+  "denyTools": ["dangerous_tool"]
+}
+```
+
+**Supported fields**:
+
+| Field | Description |
+|-------|-------------|
+| `model` | Default model for all sessions in this repository |
+| `reasoningEffort` | Default reasoning effort (`low`, `medium`, `high`) |
+| `contextTier` | Default context window size (`default`, `long_context`) |
+| `denyUrls` | Additional URL patterns to block for all sessions |
+| `denyTools` | Additional MCP or built-in tool names to block |
+
+> **Security note**: Repository settings are applied only for trusted repositories. Copilot CLI shows a trust prompt the first time you open a session in a repository — settings from untrusted repositories are ignored.
 
 ### Monorepo Support
 
@@ -688,6 +718,8 @@ copilot --plan          # start in plan mode (propose without executing)
 ```
 
 This is useful in scripts or CI pipelines where you want the CLI to immediately begin working in a specific mode without an interactive prompt.
+
+> **Plan mode now enforces a hard safety boundary (v1.0.71+)**: In plan mode, built-in tool calls that would modify the workspace — file edits, shell commands, and similar mutations — are **hard-blocked** by the CLI. The agent can still read files, search code, and analyze context, but it cannot make any changes. This ensures that plan-mode output is always a proposal, never an accidental modification. MCP and external tools are still permitted, so agents can query databases or APIs while planning. You can open a pull request from plan mode using built-in PR tools.
 
 The `--max-autopilot-continues` flag controls how many times Copilot can automatically continue in autopilot mode before pausing for confirmation. The default is 5:
 
