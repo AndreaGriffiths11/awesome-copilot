@@ -3,7 +3,7 @@ title: 'Installing and Using Plugins'
 description: 'Learn how to find, install, and manage plugins that extend GitHub Copilot CLI with reusable agents, skills, hooks, and integrations.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-24
+lastUpdated: 2026-07-18
 estimatedReadingTime: '8 minutes'
 tags:
   - plugins
@@ -209,6 +209,27 @@ copilot --plugin-dir /path/to/my-plugin
 ```
 
 Plugins loaded this way appear in `/plugin list` under a separate **External Plugins** section, clearly distinguished from marketplace-installed plugins. This is useful for testing local plugins in development or loading private plugins that aren't published to any marketplace.
+
+### Pinning Plugins to a Specific Commit (v1.0.70+)
+
+For reproducible environments, you can pin a plugin to an exact commit SHA. This prevents unexpected changes when the plugin's source repository is updated — useful for production pipelines, shared team environments, or any situation where stability is critical.
+
+To pin a plugin, add a `sha` field to the plugin's source configuration in your settings or team configuration file:
+
+```json
+{
+  "plugins": {
+    "my-plugin": {
+      "source": "awesome-copilot",
+      "sha": "a3f8c21d9e4b7f0c2e5d8a1b6e9f3c7d0a4b8e2f"
+    }
+  }
+}
+```
+
+With a `sha` specified, `copilot plugin update` will not upgrade that plugin past the pinned commit until you explicitly update the `sha`. This gives you full control over when you adopt new plugin versions.
+
+> **Tip**: After verifying a plugin update works correctly in a staging environment, update the `sha` in your configuration to move production forward.
 
 ### Where Plugins Are Stored
 
