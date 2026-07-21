@@ -3,7 +3,7 @@ title: 'Automating with Hooks'
 description: 'Learn how to use hooks to automate lifecycle events like formatting, linting, and governance checks during Copilot agent sessions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-25
+lastUpdated: 2026-07-21
 estimatedReadingTime: '8 minutes'
 tags:
   - hooks
@@ -672,6 +672,22 @@ A: The hook is terminated and the agent continues. Set `timeoutSec` appropriatel
 **Q: Can I have multiple hooks for the same event?**
 
 A: Yes. Hooks for the same event run in the order they appear in the array. If any hook fails (non-zero exit), subsequent hooks for that event may be skipped.
+
+**Q: Can an `agentStop` hook that always blocks the agent cause an infinite loop?**
+
+A: No, the CLI has built-in loop protection (v1.0.72+). If an `agentStop` hook returns a blocking result on every turn, the CLI ends the turn after **8 consecutive blocks**. When this forced continuation happens, the hook receives a `stop_hook_active: true` flag in its JSON input so the script can detect it and self-limit:
+
+```bash
+#!/usr/bin/env bash
+INPUT=$(cat)
+# If the CLI is forcing a continuation, don't block again
+if echo "$INPUT" | jq -e '.stop_hook_active == true' > /dev/null 2>&1; then
+  exit 0
+fi
+# ...normal checks...
+```
+
+This prevents runaway blocking loops while still allowing the hook to enforce policies in normal operation.
 
 **Q: Do hooks work with the Copilot coding agent?**
 
