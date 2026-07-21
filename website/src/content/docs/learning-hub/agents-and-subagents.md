@@ -3,7 +3,7 @@ title: 'Agents and Subagents'
 description: 'Learn how delegated subagents differ from primary agents, when to use them, and how to launch them in VS Code and Copilot CLI.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-01
+lastUpdated: 2026-07-21
 estimatedReadingTime: '9 minutes'
 tags:
   - agents
@@ -207,6 +207,10 @@ Yes, when the delegated worker is a custom agent with its own frontmatter.
 **Are subagents always parallel?**
 
 No. They can run sequentially when one step depends on another, or in parallel when work items are independent.
+
+**Can I send follow-up messages to a running subagent?**
+
+Yes. As of v1.0.72, **multi-turn subagents are always enabled**. You can send follow-up messages to a subagent that is already running — useful for steering the agent mid-task or providing clarification without waiting for it to finish and restarting.
 
 **Can I control how many subagents run simultaneously?**
 
