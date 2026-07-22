@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-07
+lastUpdated: 2026-07-22
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -504,10 +504,14 @@ The `/cd` command changes the working directory for the current session. Since v
 
 This is useful when you have multiple backgrounded sessions each focused on a different project directory.
 
-The `/worktree` command (v1.0.61+, also aliased `/move`) creates a new git worktree and switches into it, moving any uncommitted changes along. This lets you start working on a parallel branch without leaving your current terminal session:
+As of v1.0.71, worktree management is split into two dedicated commands with distinct behaviors:
+
+- **`/worktree`** — Creates a new git worktree and switches into it, leaving your uncommitted changes behind in the current worktree. Use this when you want to start fresh parallel work without carrying over pending changes.
+- **`/move`** — Creates a new git worktree and **carries your uncommitted changes into it**. Use this when you've already started work and want to continue it on a new branch in a separate worktree.
 
 ```
-/worktree my-feature-branch
+/worktree my-feature-branch          # new worktree, leave changes behind
+/move fix-login-bug                  # new worktree, carry uncommitted changes
 ```
 
 In v1.0.66+, you can pass a task description to `/worktree` to name the branch from the task and immediately run the task as the first prompt in the new worktree — all in one step:
@@ -518,7 +522,9 @@ In v1.0.66+, you can pass a task description to `/worktree` to name the branch f
 
 This creates a branch named from your task description and begins working on it immediately, making it easy to spin up parallel work without stopping to think of a branch name.
 
-After the command runs, the session is inside the new worktree. Use this when you want to work on a second task in parallel without stashing changes or opening a new terminal. In v1.0.64+ you can also use the experimental `--worktree` flag at startup (`copilot -w [name]`) to create or reuse a worktree under `<repo>.worktrees/` before the session begins.
+After either command runs, the session is inside the new worktree. Use this when you want to work on a second task in parallel without opening a new terminal. In v1.0.64+ you can also use the experimental `--worktree` flag at startup (`copilot -w [name]`) to create or reuse a worktree under `<repo>.worktrees/` before the session begins.
+
+> **Before v1.0.71**: `/worktree` was the only command and it always carried uncommitted changes into the new worktree (the behavior now provided by `/move`). If you see older documentation referring to `/move` as an alias for `/worktree`, that was the pre-split naming convention.
 
 The `/every` command (also available as `/loop` since v1.0.64) schedules a recurring prompt to run automatically at a specified interval. The companion `/after` command runs a prompt once after a specified delay. Both are useful for self-paced automation — polling for results, periodically summarizing progress, or triggering other slash commands on a timer:
 
@@ -688,6 +694,8 @@ copilot --plan          # start in plan mode (propose without executing)
 ```
 
 This is useful in scripts or CI pipelines where you want the CLI to immediately begin working in a specific mode without an interactive prompt.
+
+> **Plan mode enforces read-only behavior (v1.0.71+)**: In plan mode, Copilot hard-blocks any built-in tool calls that would modify your workspace — the agent cannot edit files, create files, or run mutating shell commands while planning. Opening a pull request is also blocked. MCP tools and external tools are still permitted, so agents can gather information freely. This ensures that `/plan` truly proposes rather than acts, making it safe to use for previewing what an agent intends to do before switching to agent mode.
 
 The `--max-autopilot-continues` flag controls how many times Copilot can automatically continue in autopilot mode before pausing for confirmation. The default is 5:
 
