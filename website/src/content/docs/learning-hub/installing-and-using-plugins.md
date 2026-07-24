@@ -3,7 +3,7 @@ title: 'Installing and Using Plugins'
 description: 'Learn how to find, install, and manage plugins that extend GitHub Copilot CLI with reusable agents, skills, hooks, and integrations.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-24
+lastUpdated: 2026-07-24
 estimatedReadingTime: '8 minutes'
 tags:
   - plugins
@@ -73,6 +73,8 @@ The `plugin.json` manifest declares what the plugin contains:
   ]
 }
 ```
+
+> **Open Plugin Spec v1 (v1.0.74+)**: Copilot CLI also supports plugins distributed as **Open Plugin Spec v1** bundles (e.g., via a standalone `mcp.json` configuration). This means you can install community MCP-server–based plugins using the same `copilot plugin install` workflow, even if they were originally authored for other compatible AI tools.
 
 ## Why Use Plugins?
 
@@ -178,6 +180,23 @@ Or from an interactive session:
 
 > **Deprecation notice**: Installing plugins directly from a GitHub repository URL, raw URL, or local file path (e.g., `copilot plugin install github/awesome-copilot`) is deprecated and will be removed in a future release. Use marketplace-based installation instead.
 
+### Installing Individual Skills *(v1.0.72+)*
+
+You can install a standalone skill (without packaging it into a full plugin) using the `--skill` flag:
+
+```bash
+# Install a skill from a local directory
+copilot plugins install --skill ./my-skill/
+
+# Install a skill from a URL
+copilot plugins install --skill https://example.com/skill.zip
+
+# Install a skill into the current repository (project scope)
+copilot plugins install --skill ./my-skill/ --scope project
+```
+
+Installed skills appear immediately in `/skill list` and are available to agents without any additional configuration.
+
 ### From VS Code
 
 Browse to the plugin via `@agentPlugins` in the Extensions search view or via **Chat: Plugins** in the Command Palette, then click **Install**.
@@ -198,6 +217,26 @@ copilot plugin marketplace update
 
 # Remove a plugin
 copilot plugin uninstall my-plugin
+```
+
+You can also manage individual components within a plugin using `--plugin`, `--mcp`, and `--skill` flags *(v1.0.72+)*:
+
+```bash
+# Enable or disable a specific skill from a plugin
+copilot plugin enable --skill my-skill
+copilot plugin disable --skill my-skill
+
+# Remove a specific MCP server added by a plugin
+copilot plugin remove --mcp my-mcp-server
+```
+
+Or from within an interactive session:
+
+```
+/plugins enable --skill my-skill
+/plugins disable --mcp my-mcp-server
+/plugins update my-plugin
+/plugins uninstall my-plugin
 ```
 
 ### Loading Plugins from a Local Directory
