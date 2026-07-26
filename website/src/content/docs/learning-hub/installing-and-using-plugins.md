@@ -3,7 +3,7 @@ title: 'Installing and Using Plugins'
 description: 'Learn how to find, install, and manage plugins that extend GitHub Copilot CLI with reusable agents, skills, hooks, and integrations.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-24
+lastUpdated: 2026-07-26
 estimatedReadingTime: '8 minutes'
 tags:
   - plugins
@@ -177,6 +177,27 @@ Or from an interactive session:
 ```
 
 > **Deprecation notice**: Installing plugins directly from a GitHub repository URL, raw URL, or local file path (e.g., `copilot plugin install github/awesome-copilot`) is deprecated and will be removed in a future release. Use marketplace-based installation instead.
+
+### Installing Individual Skills from the CLI (v1.0.72+)
+
+You can install a single skill directly from a file, URL, or directory — without wrapping it in a full plugin — using the `--skill` flag:
+
+```bash
+# Install a skill from a local directory
+copilot plugins install --skill ./my-skill/
+
+# Install a skill into the current repository (project scope)
+copilot plugins install --skill ./my-skill/ --scope project
+
+# Install a skill from a URL
+copilot plugins install --skill https://example.com/my-skill.zip
+```
+
+Installed skills appear in your skill list and are automatically discovered by agents when relevant. Use `copilot plugins remove --skill <name>` to remove them.
+
+### Open Plugin Spec v1 (v1.0.74+)
+
+GitHub Copilot CLI now supports **Open Plugin Spec v1** plugin manifests and `mcp.json` configuration. Plugins authored to the Open Plugin Spec v1 format can be installed and used directly — the CLI reads the spec-compliant `plugin.json` manifest and `mcp.json` configuration automatically. This improves cross-tool compatibility, so plugins built for other coding agents that follow the open spec can often be used in GitHub Copilot CLI without modification.
 
 ### From VS Code
 
