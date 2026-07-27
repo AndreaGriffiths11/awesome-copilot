@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-07
+lastUpdated: 2026-07-27
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -413,6 +413,18 @@ In addition to the main config file, GitHub Copilot CLI reads two optional per-p
 
 These files follow the same format as `config.json` and are loaded after the global config, so they can tailor CLI behaviour—including hook definitions—per repository without touching `.github/`.
 
+**Repository model pinning** (v1.0.70+): A trusted repository can pin the model, reasoning effort level, and context tier for all sessions in that repository, as well as extend the URL/MCP/skill deny lists. Add a `.github/copilot/settings.json` file to your repository:
+
+```json
+{
+  "model": "claude-sonnet-4.6",
+  "effortLevel": "high",
+  "denyMcpServers": ["untrusted-server"]
+}
+```
+
+When present, these settings apply automatically to anyone working in that repository — useful for enforcing a consistent model across a team or for organization compliance policies.
+
 > **Important (v1.0.36+)**: Custom agents, skills, and commands placed in `~/.claude/` (the Claude Code user directory) are **no longer loaded** by GitHub Copilot CLI. Only `~/.claude/settings.json` is read for configuration. If you previously stored personal agents or skills in `~/.claude/`, move them to the supported locations: `~/.copilot/agents/` for user-level agents, `~/.copilot/skills/` or `~/.agents/skills/` for personal skills, or `.github/agents/` and `.github/skills/` in your repositories for project-level customizations.
 
 ### Model Picker
@@ -422,6 +434,16 @@ The model picker opens in a **full-screen view** with inline reasoning effort ad
 **Auto mode and server-side model routing** (v1.0.43+): When you select **Auto** as your model, the CLI uses server-side model routing for real-time model selection. Instead of locking in a single model at session start, Auto mode evaluates each request and routes it to the most appropriate model dynamically. This means straightforward questions can be handled by a faster model while complex reasoning tasks are automatically escalated — without you needing to switch models manually.
 
 **Model family aliases** (v1.0.64+): Instead of typing a full model name, you can use short family aliases in the model setting: `opus`, `sonnet`, `haiku` (Anthropic), and `gpt`, `gemini` (Google/OpenAI). The CLI resolves the alias to the latest available model in that family. This is especially useful in scripts or configuration files where you want to track the best model in a family without hardcoding a version string.
+
+**New models (July 2026)**: Recent releases added support for several new models:
+
+- **Claude Opus 5** (v1.0.75) — Anthropic's latest flagship model
+- **Gemini 3.6 Flash** (v1.0.74) — Google's fast reasoning model
+- **GPT-5.6** (v1.0.70) — OpenAI's latest model
+
+Use `/model` in any interactive session to see the current list of available models and select one.
+
+**Per-plan-mode model** (v1.0.74+): Use `/model plan` (or `/model --plan`) to pick a model specifically used while in plan mode. Pass a model id, `off` to clear, or no id to open the picker. The plan mode model reverts to the session model when you leave plan mode — useful for routing planning work to a faster or cheaper model while keeping a powerful model for execution.
 
 ### CLI Session Commands
 
@@ -578,6 +600,14 @@ The `/diagnose` command (v1.0.64+) analyzes the current session's logs and surfa
 
 Use `/diagnose` when a session is behaving unexpectedly — it inspects session logs and reports what it finds, making it easier to share diagnostics with support or understand what happened internally.
 
+The `/refine` command (v1.0.70+) rewrites a rough, stream-of-consciousness prompt into a clear, well-structured one. Use it when you have a complex idea but aren't sure how to express it precisely:
+
+```
+/refine
+```
+
+After invoking `/refine`, describe what you want in any form — the command rewrites it into a clear, actionable prompt that you can review and send. This is especially useful for complex multi-step requests where precision matters.
+
 **Keyboard shortcuts for queuing messages**: Use **Ctrl+Q** or **Ctrl+Enter** to queue a message (send it while the agent is still working). **Ctrl+D** no longer queues messages — it now has its default terminal behavior. If you have muscle memory for Ctrl+D queuing, switch to Ctrl+Q.
 
 **Background running tasks**: Press **Ctrl+X → B** to move the current running task or shell command to the background. The task continues executing while you can type a new message or review earlier output. This is useful for long-running commands where you want to interact with the agent while waiting for the result.
@@ -688,6 +718,8 @@ copilot --plan          # start in plan mode (propose without executing)
 ```
 
 This is useful in scripts or CI pipelines where you want the CLI to immediately begin working in a specific mode without an interactive prompt.
+
+> **Plan mode guardrails (v1.0.71+)**: Plan mode now hard-blocks built-in tool calls that would modify the workspace — the agent cannot edit files or run mutating shell commands while planning. MCP and external tools are still permitted. Planning artifacts (e.g., `plan.md` in the session folder) are allowed. This makes plan mode safe to use in contexts where you want to review a proposal before any changes are made.
 
 The `--max-autopilot-continues` flag controls how many times Copilot can automatically continue in autopilot mode before pausing for confirmation. The default is 5:
 

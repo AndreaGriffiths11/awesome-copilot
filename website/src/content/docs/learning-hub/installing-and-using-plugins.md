@@ -3,7 +3,7 @@ title: 'Installing and Using Plugins'
 description: 'Learn how to find, install, and manage plugins that extend GitHub Copilot CLI with reusable agents, skills, hooks, and integrations.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-24
+lastUpdated: 2026-07-27
 estimatedReadingTime: '8 minutes'
 tags:
   - plugins
@@ -177,6 +177,24 @@ Or from an interactive session:
 ```
 
 > **Deprecation notice**: Installing plugins directly from a GitHub repository URL, raw URL, or local file path (e.g., `copilot plugin install github/awesome-copilot`) is deprecated and will be removed in a future release. Use marketplace-based installation instead.
+
+### Open Plugin Spec v1 and mcp.json (v1.0.74+)
+
+Copilot CLI now supports **Open Plugin Spec v1** plugin manifests and `mcp.json` configuration files. If a plugin repository includes an `mcp.json` at its root or in `.github/`, the CLI reads it to configure MCP servers automatically — no manual setup required. This makes it easier to share and consume plugin configurations that follow the open standard.
+
+### Pinning Plugins to a Commit SHA (v1.0.70+)
+
+For reproducible installs, you can pin a plugin to an exact commit SHA using the `sha` field in your plugin source configuration. This ensures that everyone on your team uses the same plugin version regardless of upstream changes:
+
+```json
+{
+  "source": "org/my-plugin",
+  "ref": "v1.2.0",
+  "sha": "abc1234def5678..."
+}
+```
+
+The `sha` field pins the install to that exact commit. If the commit at `ref` does not match `sha`, installation fails — preventing silent version drift.
 
 ### From VS Code
 

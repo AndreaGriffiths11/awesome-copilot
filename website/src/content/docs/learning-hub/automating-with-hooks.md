@@ -3,7 +3,7 @@ title: 'Automating with Hooks'
 description: 'Learn how to use hooks to automate lifecycle events like formatting, linting, and governance checks during Copilot agent sessions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-25
+lastUpdated: 2026-07-27
 estimatedReadingTime: '8 minutes'
 tags:
   - hooks
@@ -369,6 +369,18 @@ Run ESLint after the agent finishes responding and block if there are errors:
 
 If the lint command exits with a non-zero status, the action is blocked.
 
+> **Preventing infinite loops in `agentStop` (v1.0.72+)**: If an `agentStop` hook always blocks (always exits non-zero), the CLI now limits retries to 8 consecutive blocks before ending the turn automatically. Hook scripts receive a `stop_hook_active` JSON field in their input — check this flag to self-limit and avoid blocking every continuation:
+>
+> ```bash
+> INPUT=$(cat)
+> STOP_HOOK_ACTIVE=$(echo "$INPUT" | jq -r '.stop_hook_active // false')
+> if [ "$STOP_HOOK_ACTIVE" = "true" ]; then
+>   exit 0  # already in forced continuation, don't block again
+> fi
+> # run your lint check here
+> npx eslint . --max-warnings 0
+> ```
+
 ### Security Gating with preToolUse
 
 Block dangerous commands before they execute. Use the `matcher` field to target only the `bash` tool, so the hook doesn't fire for file edits or other tools:
@@ -390,7 +402,9 @@ Block dangerous commands before they execute. Use the `matcher` field to target 
 }
 ```
 
-The `preToolUse` hook receives JSON input with details about the tool being called. Your script can inspect this input and exit with a non-zero code to **deny** the tool execution, or exit with zero to **approve** it.
+The `preToolUse` hook receives JSON input with details about the tool being called. Your script can inspect this input and exit with **code 2** to **deny** the tool execution (v1.0.70+), or exit with zero to **approve** it. Exiting with code 1 or any non-zero code other than 2 is treated as a hook error rather than an explicit deny.
+
+> **Exit code semantics (v1.0.70+)**: Use exit code `2` to explicitly deny a tool call in `preToolUse`. Earlier releases treated any non-zero exit as a denial; from v1.0.70 onward, exit code `2` is the canonical deny signal.
 
 ### Modifying Tool Arguments with preToolUse
 
