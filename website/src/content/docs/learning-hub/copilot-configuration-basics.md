@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-07
+lastUpdated: 2026-07-28
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -402,7 +402,7 @@ CLI settings use **camelCase** naming. Key settings added in recent releases:
 | `continueOnAutoMode` | Automatically switch to the auto model on rate limit instead of pausing |
 | `proxy` | HTTP(S) proxy URL for all outbound CLI requests (e.g., `http://proxy.example.com:8080`) (v1.0.64+) |
 | `sessionLimits` | Restrict credit or turn usage for a session; limits apply across the current conversation and reset on `/clear` (v1.0.66+) |
-| `stayInAutopilot` | Keep the CLI in autopilot mode after an autopilot task completes, instead of returning to interactive mode (v1.0.69+) |
+| `stayInAutopilot` | Keep the CLI in autopilot mode after an autopilot task completes, instead of returning to interactive mode (v1.0.69+). **Defaults to `true` as of v1.0.76** — set to `false` to restore the previous behavior of returning to interactive mode after each task. |
 
 > **Note**: Older snake_case names (e.g., `include_gitignored`, `auto_updates_channel`) are still accepted for backward compatibility, but camelCase is now the preferred format.
 
@@ -422,6 +422,18 @@ The model picker opens in a **full-screen view** with inline reasoning effort ad
 **Auto mode and server-side model routing** (v1.0.43+): When you select **Auto** as your model, the CLI uses server-side model routing for real-time model selection. Instead of locking in a single model at session start, Auto mode evaluates each request and routes it to the most appropriate model dynamically. This means straightforward questions can be handled by a faster model while complex reasoning tasks are automatically escalated — without you needing to switch models manually.
 
 **Model family aliases** (v1.0.64+): Instead of typing a full model name, you can use short family aliases in the model setting: `opus`, `sonnet`, `haiku` (Anthropic), and `gpt`, `gemini` (Google/OpenAI). The CLI resolves the alias to the latest available model in that family. This is especially useful in scripts or configuration files where you want to track the best model in a family without hardcoding a version string.
+
+**New models (recent additions)**: Claude Opus 5 (`claude-opus-5`) is the most powerful Anthropic model for complex reasoning and deep analysis, added in v1.0.75. Gemini 3.6 Flash (`gemini-3.6-flash`) is a fast, cost-efficient Google model added in v1.0.74.
+
+**`/model plan` command** (v1.0.74+): You can set a separate model for plan mode, letting you use a different (often lighter) model when Copilot is proposing changes without executing them. Use `/model plan` or `/model --plan` to open the model picker scoped to plan mode — pass a model ID, `off` to clear it and revert to the session model, or no argument to open the interactive picker:
+
+```
+/model plan                          # open picker for plan-mode model
+/model plan claude-haiku-4-5         # set a specific plan-mode model
+/model --plan off                    # clear — revert to session model in plan mode
+```
+
+The plan-mode model automatically reverts to your session model whenever you leave plan mode.
 
 ### CLI Session Commands
 
@@ -609,6 +621,14 @@ The `/usage` command displays session metrics such as the number of tokens consu
 ```
 /usage
 ```
+
+The `/limits predict` command (v1.0.76+) analyzes your recent sessions to suggest an appropriate AI-credit limit for the current session. It looks at how much credit similar past sessions consumed and recommends a limit you can set to avoid unexpected quota overruns:
+
+```
+/limits predict
+```
+
+This is especially useful when starting a long-running or autopilot session where you want to guard against runaway credit usage without manually estimating the limit yourself.
 
 The `/compact` command summarizes the conversation history to free up context window space while preserving the thread of the conversation. Use it when your context is getting full but you do not want to start a fresh session:
 

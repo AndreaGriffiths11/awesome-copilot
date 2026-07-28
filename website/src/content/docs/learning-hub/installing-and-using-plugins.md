@@ -3,7 +3,7 @@ title: 'Installing and Using Plugins'
 description: 'Learn how to find, install, and manage plugins that extend GitHub Copilot CLI with reusable agents, skills, hooks, and integrations.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-24
+lastUpdated: 2026-07-28
 estimatedReadingTime: '8 minutes'
 tags:
   - plugins
@@ -36,6 +36,8 @@ A plugin bundles one or more of the following components:
 | **Extensions** | IDE extensions installable via the plugin marketplace (v1.0.62+) | `extensions/` |
 
 A plugin might include all of these or just one — for example, a plugin could provide a single specialized agent, or an entire development toolkit with multiple agents, skills, hooks, and MCP server configurations working together.
+
+> **Open Plugin Spec v1** (v1.0.74+): GitHub Copilot CLI now supports **Open Plugin Spec v1** plugin manifests in addition to the native `plugin.json` format. If a plugin ships with an OPS-compatible manifest, it will be recognized and loaded automatically. Plugins that bundle an `mcp.json` configuration file are also supported — the CLI reads the MCP server definitions from `mcp.json` and registers them alongside the plugin's agents and skills.
 
 ### Example: What a Plugin Looks Like
 
