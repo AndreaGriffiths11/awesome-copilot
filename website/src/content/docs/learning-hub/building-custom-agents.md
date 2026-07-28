@@ -3,7 +3,7 @@ title: 'Building Custom Agents'
 description: 'Learn how to create specialized GitHub Copilot agents with custom personas, tool integrations, and domain expertise.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-06
+lastUpdated: 2026-07-28
 estimatedReadingTime: '10 minutes'
 tags:
   - agents
@@ -100,6 +100,8 @@ For MCP server tools, reference them by server name (e.g., `postgres`, `docker`)
 ### Agent Instructions
 
 After the frontmatter, write Markdown instructions that define the agent's behavior. Structure these clearly:
+
+> **Relative links in instructions** (v1.0.73+): Relative links inside your agent's Markdown instructions are resolved relative to the agent file's own location. This means you can link to helper files, scripts, or documents that live in the same directory as the `.agent.md` file and the links will work correctly regardless of where the agent file is stored.
 
 ````markdown
 ---
@@ -254,7 +256,7 @@ The agent can then query your database, analyze query plans, and suggest optimiz
 
 | Scenario | Recommended Model |
 |----------|-------------------|
-| Most demanding reasoning, security review | Claude Sonnet 5 *(v1.0.67+)* |
+| Most demanding reasoning, security review | Claude Opus 5 *(v1.0.75+)* |
 | Complex reasoning, analysis | Claude Sonnet 4 |
 | Code generation, refactoring | GPT-4.1 |
 | Code-specialized tasks, large context | kimi-k2.7-code *(v1.0.68+)* |
