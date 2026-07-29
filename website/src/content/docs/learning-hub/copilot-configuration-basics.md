@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-07
+lastUpdated: 2026-07-29
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -415,6 +415,20 @@ These files follow the same format as `config.json` and are loaded after the glo
 
 > **Important (v1.0.36+)**: Custom agents, skills, and commands placed in `~/.claude/` (the Claude Code user directory) are **no longer loaded** by GitHub Copilot CLI. Only `~/.claude/settings.json` is read for configuration. If you previously stored personal agents or skills in `~/.claude/`, move them to the supported locations: `~/.copilot/agents/` for user-level agents, `~/.copilot/skills/` or `~/.agents/skills/` for personal skills, or `.github/agents/` and `.github/skills/` in your repositories for project-level customizations.
 
+### Repository-Pinned Model Settings (v1.0.70+)
+
+A trusted repository can now pin the **model, reasoning effort, and context tier** for all contributors by adding a `.github/copilot/settings.json` file. This ensures everyone working in the repo uses a consistent model configuration without each person configuring it manually:
+
+```json
+{
+  "model": "claude-sonnet-4-6",
+  "effortLevel": "high",
+  "contextTier": "full"
+}
+```
+
+The file can also **extend the URL, MCP server, and skill deny lists** defined in managed settings, giving repository maintainers fine-grained control over what resources the agent can access within the project. The pinned settings apply to all CLI sessions opened in that repository once the repo is trusted.
+
 ### Model Picker
 
 The model picker opens in a **full-screen view** with inline reasoning effort adjustment. Use the **← / →** arrow keys to change the reasoning effort level (`low`, `medium`, `high`) directly from the picker without leaving the session. The current reasoning effort level is also displayed in the model header (e.g., `claude-sonnet-4.6 (high)`) so you always know which level is active.
@@ -422,6 +436,24 @@ The model picker opens in a **full-screen view** with inline reasoning effort ad
 **Auto mode and server-side model routing** (v1.0.43+): When you select **Auto** as your model, the CLI uses server-side model routing for real-time model selection. Instead of locking in a single model at session start, Auto mode evaluates each request and routes it to the most appropriate model dynamically. This means straightforward questions can be handled by a faster model while complex reasoning tasks are automatically escalated — without you needing to switch models manually.
 
 **Model family aliases** (v1.0.64+): Instead of typing a full model name, you can use short family aliases in the model setting: `opus`, `sonnet`, `haiku` (Anthropic), and `gpt`, `gemini` (Google/OpenAI). The CLI resolves the alias to the latest available model in that family. This is especially useful in scripts or configuration files where you want to track the best model in a family without hardcoding a version string.
+
+**Session-scoped model changes** (v1.0.72+): Use `/model --session` (or `/model -s`) to change the model, reasoning effort, or context window **for the current session only**, without touching your global saved settings. This is useful for experimenting with a different model on a specific task:
+
+```
+/model --session claude-opus-4-5   # use Opus for this session only
+/model -s gemini                    # switch to Gemini for this session
+```
+
+When you start a new session, the global model setting is restored.
+
+**Plan mode model** (v1.0.74+): Use `/model plan` (or `/model --plan`) to pick a dedicated model used **only while in plan mode**. Pass a model ID to set it, `off` to clear it, or no argument to open the model picker:
+
+```
+/model plan claude-sonnet-4-6   # use Sonnet for planning, keep current model for execution
+/model --plan off               # revert to using the session model during plan mode
+```
+
+This lets you use a cost-effective model for planning phases while reserving a more capable model for implementation.
 
 ### CLI Session Commands
 
@@ -504,7 +536,7 @@ The `/cd` command changes the working directory for the current session. Since v
 
 This is useful when you have multiple backgrounded sessions each focused on a different project directory.
 
-The `/worktree` command (v1.0.61+, also aliased `/move`) creates a new git worktree and switches into it, moving any uncommitted changes along. This lets you start working on a parallel branch without leaving your current terminal session:
+The `/worktree` command (v1.0.61+) creates a new git worktree and switches into it, moving any uncommitted changes along. This lets you start working on a parallel branch without leaving your current terminal session:
 
 ```
 /worktree my-feature-branch
@@ -519,6 +551,8 @@ In v1.0.66+, you can pass a task description to `/worktree` to name the branch f
 This creates a branch named from your task description and begins working on it immediately, making it easy to spin up parallel work without stopping to think of a branch name.
 
 After the command runs, the session is inside the new worktree. Use this when you want to work on a second task in parallel without stashing changes or opening a new terminal. In v1.0.64+ you can also use the experimental `--worktree` flag at startup (`copilot -w [name]`) to create or reuse a worktree under `<repo>.worktrees/` before the session begins.
+
+> **v1.0.71+**: `/worktree` and `/move` are now **separate commands** with different behaviors. `/worktree` creates a new worktree and **leaves your uncommitted changes behind** in the original session. `/move` carries your uncommitted changes **into** the new worktree. Use `/worktree` when you want to preserve a clean working state in your current session; use `/move` when you want to continue your in-progress changes on a new branch.
 
 The `/every` command (also available as `/loop` since v1.0.64) schedules a recurring prompt to run automatically at a specified interval. The companion `/after` command runs a prompt once after a specified delay. Both are useful for self-paced automation — polling for results, periodically summarizing progress, or triggering other slash commands on a timer:
 

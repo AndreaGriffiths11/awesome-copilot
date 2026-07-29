@@ -3,7 +3,7 @@ title: 'Installing and Using Plugins'
 description: 'Learn how to find, install, and manage plugins that extend GitHub Copilot CLI with reusable agents, skills, hooks, and integrations.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-24
+lastUpdated: 2026-07-29
 estimatedReadingTime: '8 minutes'
 tags:
   - plugins
@@ -36,6 +36,8 @@ A plugin bundles one or more of the following components:
 | **Extensions** | IDE extensions installable via the plugin marketplace (v1.0.62+) | `extensions/` |
 
 A plugin might include all of these or just one — for example, a plugin could provide a single specialized agent, or an entire development toolkit with multiple agents, skills, hooks, and MCP server configurations working together.
+
+> **v1.0.74+**: Plugins now support **Open Plugin Spec v1** plugin manifests and `mcp.json` configuration files — the same format used by Claude Code and other AI tools. This means plugins written for other tools are often compatible with Copilot CLI without modification, and vice versa.
 
 ### Example: What a Plugin Looks Like
 
@@ -177,6 +179,24 @@ Or from an interactive session:
 ```
 
 > **Deprecation notice**: Installing plugins directly from a GitHub repository URL, raw URL, or local file path (e.g., `copilot plugin install github/awesome-copilot`) is deprecated and will be removed in a future release. Use marketplace-based installation instead.
+
+### Pinning to an Exact Commit SHA (v1.0.70+)
+
+To lock a plugin to an immutable version, add a `sha` field to its source configuration. This prevents automatic updates from pulling in unexpected changes and is especially important for plugins used in CI or regulated environments:
+
+```json
+{
+  "plugins": [
+    {
+      "source": "my-org/internal-plugins",
+      "name": "security-toolkit",
+      "sha": "a3f8c2d1e4b5..."
+    }
+  ]
+}
+```
+
+With a `sha` set, the CLI always checks out that exact commit, regardless of what the branch tip points to.
 
 ### From VS Code
 
