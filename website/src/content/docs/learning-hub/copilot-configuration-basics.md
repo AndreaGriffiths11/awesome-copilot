@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-07
+lastUpdated: 2026-07-30
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -423,6 +423,18 @@ The model picker opens in a **full-screen view** with inline reasoning effort ad
 
 **Model family aliases** (v1.0.64+): Instead of typing a full model name, you can use short family aliases in the model setting: `opus`, `sonnet`, `haiku` (Anthropic), and `gpt`, `gemini` (Google/OpenAI). The CLI resolves the alias to the latest available model in that family. This is especially useful in scripts or configuration files where you want to track the best model in a family without hardcoding a version string.
 
+**Plan-mode model** *(v1.0.74+)*: Use `/model plan` (or `/model --plan`) to select a dedicated model for plan mode. The plan-mode model is active only while you are in plan mode; when you leave plan mode, the session's primary model resumes:
+
+```
+/model plan             # open the picker to select a plan-mode model
+/model plan off         # clear the plan-mode model (revert to session model)
+/model --plan           # alias
+```
+
+This is useful when you want a faster or cheaper model for the planning phase and a more capable model for execution.
+
+**Recently added models**: The CLI regularly adds support for new models. Recent additions include **Claude Opus 5** (v1.0.75), **grok-4.5** (v1.0.76), and **gemini-3.6-flash** (v1.0.74). Use the model picker (`/model`) to see the full list of currently available models in your account.
+
 ### CLI Session Commands
 
 The `/settings` command (v1.0.61+) opens an interactive dialog to browse and edit all user settings in one place. Use it to discover available settings, toggle options, and update values without manually editing your config file:
@@ -580,6 +592,16 @@ Use `/diagnose` when a session is behaving unexpectedly — it inspects session 
 
 **Keyboard shortcuts for queuing messages**: Use **Ctrl+Q** or **Ctrl+Enter** to queue a message (send it while the agent is still working). **Ctrl+D** no longer queues messages — it now has its default terminal behavior. If you have muscle memory for Ctrl+D queuing, switch to Ctrl+Q.
 
+**Queue manager (staff)** *(v1.0.76+)*: The queue manager gives you full control over messages waiting to be sent. Open it from the queue panel while the agent is working to reorder, edit, remove, repeat, or immediately send queued messages — useful for reorganizing a burst of follow-up instructions without having to wait for each one to complete first.
+
+**Sessions sidebar** *(v1.0.76+, experimental)*: The Sessions sidebar provides a persistent panel for managing multiple concurrent CLI sessions — switch between them, spawn new ones, and see their status at a glance. Enable it by turning on experimental mode:
+
+```
+/experimental on    # enable experimental features (sessions sidebar appears automatically)
+```
+
+Once active, the sidebar shows all open sessions with their status (idle, working, waiting). This complements backgrounded sessions (managed with `/new`) by surfacing them in a persistent view rather than requiring you to open the session picker. It is especially useful when you are running several parallel work streams and want to monitor progress at a glance.
+
 **Background running tasks**: Press **Ctrl+X → B** to move the current running task or shell command to the background. The task continues executing while you can type a new message or review earlier output. This is useful for long-running commands where you want to interact with the agent while waiting for the result.
 
 **Shell command history in normal mode** (v1.0.65+): The **↑/↓** arrow keys and **Ctrl+R** reverse search now include past shell commands (commands run with `!`) while you are in normal (non-shell) input mode. Previously you had to type `!` to enter shell mode before history worked. Now you can recall and re-run a shell command without switching modes first — useful for quickly repeating a build, test, or diagnostic command from earlier in the session.
@@ -609,6 +631,14 @@ The `/usage` command displays session metrics such as the number of tokens consu
 ```
 /usage
 ```
+
+The `/limits predict` command *(v1.0.76+)* suggests a session AI-credit limit based on similar past sessions — useful when you want to set a spending cap for a task without guessing:
+
+```
+/limits predict     # suggest a credit limit based on similar sessions
+```
+
+Pair this with the `sessionLimits` config setting to set a hard cap that prevents any single session from consuming your entire quota.
 
 The `/compact` command summarizes the conversation history to free up context window space while preserving the thread of the conversation. Use it when your context is getting full but you do not want to start a fresh session:
 
