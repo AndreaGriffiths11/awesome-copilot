@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-07
+lastUpdated: 2026-07-31
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -403,6 +403,7 @@ CLI settings use **camelCase** naming. Key settings added in recent releases:
 | `proxy` | HTTP(S) proxy URL for all outbound CLI requests (e.g., `http://proxy.example.com:8080`) (v1.0.64+) |
 | `sessionLimits` | Restrict credit or turn usage for a session; limits apply across the current conversation and reset on `/clear` (v1.0.66+) |
 | `stayInAutopilot` | Keep the CLI in autopilot mode after an autopilot task completes, instead of returning to interactive mode (v1.0.69+) |
+| `allowDevToolCaches` | Grant sandboxed builds access to toolchain caches, registries, and installs so builds work without extra setup. On by default; set `false` to opt out (v1.0.78+) |
 
 > **Note**: Older snake_case names (e.g., `include_gitignored`, `auto_updates_channel`) are still accepted for backward compatibility, but camelCase is now the preferred format.
 
@@ -418,6 +419,8 @@ These files follow the same format as `config.json` and are loaded after the glo
 ### Model Picker
 
 The model picker opens in a **full-screen view** with inline reasoning effort adjustment. Use the **← / →** arrow keys to change the reasoning effort level (`low`, `medium`, `high`) directly from the picker without leaving the session. The current reasoning effort level is also displayed in the model header (e.g., `claude-sonnet-4.6 (high)`) so you always know which level is active.
+
+**Newly supported models**: Recent releases added support for **Claude Opus 5** (v1.0.75), **grok-4.5** (v1.0.76), and **gemini-3.6-flash** (v1.0.74). Open the model picker or run `/model` to see all currently available models in your region.
 
 **Auto mode and server-side model routing** (v1.0.43+): When you select **Auto** as your model, the CLI uses server-side model routing for real-time model selection. Instead of locking in a single model at session start, Auto mode evaluates each request and routes it to the most appropriate model dynamically. This means straightforward questions can be handled by a faster model while complex reasoning tasks are automatically escalated — without you needing to switch models manually.
 
@@ -582,6 +585,8 @@ Use `/diagnose` when a session is behaving unexpectedly — it inspects session 
 
 **Background running tasks**: Press **Ctrl+X → B** to move the current running task or shell command to the background. The task continues executing while you can type a new message or review earlier output. This is useful for long-running commands where you want to interact with the agent while waiting for the result.
 
+**Sessions Sidebar** (v1.0.76, experimental): An opt-in sidebar lets you manage multiple concurrent sessions without leaving your current session. Enable it with `/experimental on`, then navigate between sessions, spawn new ones, and check their status at a glance. The sidebar is keyboard and mouse navigable — arrow keys move the selection, Enter or a click switches sessions, `n` spawns a new session, and `x` twice closes one. Control its behavior via `/settings` (disable the sidebar, or stop it from restoring remembered sessions).
+
 **Shell command history in normal mode** (v1.0.65+): The **↑/↓** arrow keys and **Ctrl+R** reverse search now include past shell commands (commands run with `!`) while you are in normal (non-shell) input mode. Previously you had to type `!` to enter shell mode before history worked. Now you can recall and re-run a shell command without switching modes first — useful for quickly repeating a build, test, or diagnostic command from earlier in the session.
 
 **Inline image rendering** (v1.0.64+): The CLI can display images inline in the terminal when your terminal supports it. If an MCP tool, agent, or attachment returns an image, it is rendered directly in the conversation timeline rather than shown as a file path or URL. This works in terminals with image protocol support (such as iTerm2, Kitty, Wezterm, and tmux with appropriate configuration).
@@ -636,6 +641,14 @@ The `/keep-alive` command prevents the system from sleeping while Copilot CLI is
 
 > **Note**: `/keep-alive` was previously an experimental feature. As of v1.0.36, it is available without enabling experimental mode.
 
+The `/permissions` command (v1.0.78) opens an interactive menu to switch between **approval modes** — the same settings you can configure with `/allow-all` and `/autopilot`, but presented as a unified, discoverable UI:
+
+```
+/permissions
+```
+
+Use `/permissions` when you want to review or change how the agent handles tool approval without remembering the specific flags for each mode. It presents all available modes (interactive, autopilot, auto allow-all) in one place.
+
 The `/allow-all` command (also accessible as `/yolo`) enables autopilot mode, where the agent runs all tools without asking for confirmation. It now supports `on`, `off`, and `show` subcommands:
 
 ```
@@ -669,6 +682,18 @@ gh copilot --effort high "Refactor the authentication module"
 ```
 
 Accepted values are `low`, `medium`, and `high`. You can also set a default via the `effortLevel` config setting.
+
+### CLI Login and Authentication
+
+**Web OAuth login** (v1.0.77): `copilot login` now defaults to a **browser-based OAuth flow** on local interactive terminals. A browser window opens for you to authenticate with GitHub, then automatically redirects back to the CLI. The device-code flow remains the default on remote or headless terminals.
+
+```bash
+copilot login              # opens browser on local terminals (default)
+copilot login --web-flow   # force browser-based login
+copilot login --device-code  # force device code (for headless/remote)
+```
+
+You can also choose between flows interactively with `/login` inside a session.
 
 ### CLI Startup Flags
 
