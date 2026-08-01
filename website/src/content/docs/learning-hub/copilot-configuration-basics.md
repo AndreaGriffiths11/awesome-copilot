@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-07
+lastUpdated: 2026-08-01
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -377,6 +377,19 @@ Settings: File → Settings → Tools → GitHub Copilot
 - Enable/disable for specific file types
 - Configure suggestion behavior
 - Customize keyboard shortcuts
+
+**Agent mode and MCP (public preview)**: JetBrains IDEs now support **agent mode** and **MCP server integration** in public preview. This brings the same agentic capabilities available in VS Code to IntelliJ IDEA, PyCharm, WebStorm, and other JetBrains IDEs:
+
+- **Agent mode**: Copilot can plan multi-step tasks, run terminal commands, and edit multiple files autonomously — not just suggest single completions
+- **MCP servers**: Connect external tools and data sources using `.mcp.json` (the same format used in VS Code) so your JetBrains agents have access to databases, APIs, and services
+
+To enable agent mode in a JetBrains IDE:
+
+1. Open **File → Settings → Tools → GitHub Copilot**
+2. Enable **Agent mode (preview)**
+3. Optionally configure MCP servers in `.mcp.json` in your project root
+
+See [Understanding MCP Servers](../understanding-mcp-servers/) for server configuration details.
 
 ### GitHub Copilot CLI
 

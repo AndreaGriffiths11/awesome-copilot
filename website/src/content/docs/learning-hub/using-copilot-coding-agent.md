@@ -3,7 +3,7 @@ title: 'Using the Copilot Coding Agent'
 description: 'Learn how to use GitHub Copilot coding agent to autonomously work on issues, generate pull requests, and automate development tasks.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-05-13
+lastUpdated: 2026-08-01
 estimatedReadingTime: '12 minutes'
 tags:
   - coding-agent
@@ -333,6 +333,94 @@ This repository provides a curated collection of agents, skills, and hooks desig
 4. The hooks will run automatically during coding agent sessions
 
 > **Example workflow**: Combine a `test-specialist` agent with a `database-migrations` skill and a linting hook. Assign an issue to the coding agent using the test-specialist agent — it will automatically pick up the migrations skill when relevant, and the hook ensures all code is formatted before completion.
+
+## Plan Before Implementing
+
+The coding agent now supports an explicit **planning step** before it writes any code. When you request a plan, Copilot reads the issue and your codebase, then produces a structured approach — what files it will change, what tests it will write, and what decisions it has made — for your review before a single line of code is written.
+
+### How to Request a Plan
+
+When assigning work on GitHub.com, select the **"Plan first"** option before submitting the issue. In a comment, you can explicitly ask:
+
+```
+@copilot create a plan for this before implementing
+```
+
+Or you can set plan mode when launching from the Copilot app:
+
+```bash
+open "ghapp://session/new?repo=owner/repo&mode=plan&prompt=implement+dark+mode"
+```
+
+### What the Plan Contains
+
+A Copilot plan is a structured Markdown document that includes:
+
+- **Summary**: What the agent understands about the task
+- **Approach**: The high-level strategy it will follow
+- **Files to change**: A list of files it expects to create or modify and why
+- **Open questions**: Ambiguities or decisions that benefit from human input before proceeding
+- **Test strategy**: How it plans to verify the changes
+
+### Reviewing and Approving a Plan
+
+The plan appears as a comment on the issue or as a canvas in the Copilot app. You can:
+
+- **Approve**: The agent proceeds with implementation as planned
+- **Edit and approve**: Correct the approach, then approve — the agent follows your revised plan
+- **Reject**: The agent stops and waits for further direction
+
+This is especially useful for larger or riskier tasks where you want to agree on the approach before any code is written. It also helps catch misunderstandings early, reducing wasted work.
+
+> **Tip**: Use the plan step for tasks spanning 5+ files or involving architectural decisions. For small, well-scoped fixes, the plan step adds friction without much benefit.
+
+## MCP Server Access in the Cloud Environment
+
+The coding agent can now access **MCP servers** while running in its cloud environment (public preview). This allows the agent to call external tools, APIs, and services during autonomous work — the same way you use MCP servers in interactive sessions.
+
+### Configuring MCP for the Coding Agent
+
+Define MCP server access in your `.github/copilot-setup-steps.yml` alongside environment setup:
+
+```yaml
+# .github/copilot-setup-steps.yml
+steps:
+  - name: Install dependencies
+    run: npm ci
+
+mcp:
+  servers:
+    github:
+      command: npx
+      args: ["-y", "@modelcontextprotocol/server-github"]
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    postgres:
+      command: npx
+      args: ["-y", "@modelcontextprotocol/server-postgres", "${{ secrets.DATABASE_URL }}"]
+```
+
+Secrets referenced via `${{ secrets.NAME }}` are resolved from your repository's GitHub Actions secrets, keeping credentials out of source control.
+
+### What the Agent Can Do with MCP
+
+With MCP servers configured, the coding agent can:
+
+- **Query databases**: Read schema information, sample data, or validate migrations
+- **Call internal APIs**: Fetch config, check service status, or pull reference data
+- **Use GitHub tools**: Search issues, read PR comments, or look up CI results
+- **Access cloud resources**: Query monitoring systems, read logs, or check deployments
+
+### Security Considerations
+
+MCP access in the cloud environment follows the same trust model as agent instructions:
+
+- Only servers defined in `.github/copilot-setup-steps.yml` are available
+- Repository admins control which servers are configured
+- Secrets are injected at runtime — not visible in logs or source
+- The coding agent still cannot merge code, deploy, or take destructive actions without a PR review step
+
+> **Note**: MCP server access for the coding agent is in public preview. Supported server types and configuration options may evolve. See the [changelog entry](https://github.blog/changelog/2026-07-30-github-copilot-coding-agent-now-includes-access-to-mcp-servers-in-public-preview/) for the latest details.
 
 ## Remote Control
 
