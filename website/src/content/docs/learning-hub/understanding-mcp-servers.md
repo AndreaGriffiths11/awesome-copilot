@@ -3,7 +3,7 @@ title: 'Understanding MCP Servers'
 description: 'Learn how Model Context Protocol servers extend GitHub Copilot with access to external tools, databases, and APIs.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-06
+lastUpdated: 2026-08-01
 estimatedReadingTime: '8 minutes'
 tags:
   - mcp
@@ -354,10 +354,27 @@ A: There's no hard limit, but each server is a running process. Configure only t
 
 A: No. Copilot CLI automatically detects Azure DevOps repositories and disables the built-in GitHub MCP server for those sessions. This prevents irrelevant GitHub API calls when your project is hosted on Azure DevOps. Other MCP servers you have configured are unaffected.
 
+## MCP in More Environments
+
+### Coding Agent in the Cloud
+
+The coding agent can use MCP servers while running its autonomous cloud environment (public preview). Define server configurations in `.github/copilot-setup-steps.yml` and they'll be available during autonomous sessions. See [MCP Server Access in the Cloud Environment](../using-copilot-coding-agent/#mcp-server-access-in-the-cloud-environment) for configuration details.
+
+### JetBrains IDEs
+
+Agent mode and MCP support are now available in JetBrains IDEs (public preview). Configure servers using the same `.mcp.json` format as VS Code. See [Copilot Configuration Basics — JetBrains IDEs](../copilot-configuration-basics/#jetbrains-ides) for setup steps.
+
 ## Next Steps
 
 - **Build Agents**: [Building Custom Agents](../building-custom-agents/) — Create agents that leverage MCP tools
+- **Coding Agent with MCP**: [Using the Copilot Coding Agent](../using-copilot-coding-agent/) — Configure MCP for autonomous cloud sessions
 - **Explore Examples**: Browse the [Agents Directory](../../agents/) for agents built around MCP server integrations
 - **Protocol Deep Dive**: [MCP Specification](https://spec.modelcontextprotocol.io/) — Learn the protocol details for building your own servers
+
+## Further Reading
+
+- [Coding agent now includes access to MCP servers (Changelog, July 2026)](https://github.blog/changelog/2026-07-30-github-copilot-coding-agent-now-includes-access-to-mcp-servers-in-public-preview/)
+- [Agent mode and MCP support for JetBrains IDEs (Changelog, July 2026)](https://github.blog/changelog/2026-07-25-github-copilot-agent-mode-and-mcp-support-for-jetbrains-ides-is-now-in-public-preview/)
+- [New IDE support, coding agent and MCP custom setup in VS Code (Changelog, July 2026)](https://github.blog/changelog/2026-07-14-new-ide-support-for-github-copilot-coding-agent-and-next-edit-suggestions-coding-agent-and-mcp-custom-setup-in-vs-code-and-more/)
 
 ---
