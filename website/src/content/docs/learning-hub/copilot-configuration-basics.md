@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-07
+lastUpdated: 2026-08-02
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -402,7 +402,7 @@ CLI settings use **camelCase** naming. Key settings added in recent releases:
 | `continueOnAutoMode` | Automatically switch to the auto model on rate limit instead of pausing |
 | `proxy` | HTTP(S) proxy URL for all outbound CLI requests (e.g., `http://proxy.example.com:8080`) (v1.0.64+) |
 | `sessionLimits` | Restrict credit or turn usage for a session; limits apply across the current conversation and reset on `/clear` (v1.0.66+) |
-| `stayInAutopilot` | Keep the CLI in autopilot mode after an autopilot task completes, instead of returning to interactive mode (v1.0.69+) |
+| `stayInAutopilot` | Control whether the CLI stays in autopilot mode after an autopilot task completes. Defaults to `true` as of v1.0.76 — set to `false` to return to interactive mode after each task. (v1.0.69+) |
 
 > **Note**: Older snake_case names (e.g., `include_gitignored`, `auto_updates_channel`) are still accepted for backward compatibility, but camelCase is now the preferred format.
 
@@ -421,7 +421,7 @@ The model picker opens in a **full-screen view** with inline reasoning effort ad
 
 **Auto mode and server-side model routing** (v1.0.43+): When you select **Auto** as your model, the CLI uses server-side model routing for real-time model selection. Instead of locking in a single model at session start, Auto mode evaluates each request and routes it to the most appropriate model dynamically. This means straightforward questions can be handled by a faster model while complex reasoning tasks are automatically escalated — without you needing to switch models manually.
 
-**Model family aliases** (v1.0.64+): Instead of typing a full model name, you can use short family aliases in the model setting: `opus`, `sonnet`, `haiku` (Anthropic), and `gpt`, `gemini` (Google/OpenAI). The CLI resolves the alias to the latest available model in that family. This is especially useful in scripts or configuration files where you want to track the best model in a family without hardcoding a version string.
+**Model family aliases** (v1.0.64+): Instead of typing a full model name, you can use short family aliases in the model setting: `opus`, `sonnet`, `haiku` (Anthropic), `gpt`, `gemini` (Google/OpenAI), and `grok` (xAI, v1.0.76+). The CLI resolves the alias to the latest available model in that family. This is especially useful in scripts or configuration files where you want to track the best model in a family without hardcoding a version string.
 
 ### CLI Session Commands
 
@@ -658,6 +658,8 @@ Use `/autopilot` when you want to flip between supervised and unsupervised opera
 
 > **Enhanced autopilot (v1.0.64+)**: When autopilot mode is active — including when launched with `--autopilot` at startup or during automatic continuation turns — the agent automatically handles elicitation dialogs, `ask_user` prompts, sampling requests, and permission prompts without surfacing them as interactive dialogs. This means long-running automated sessions can proceed end-to-end without manual confirmation steps.
 
+> **Editing `ask_user` answers (v1.0.77+)**: When Copilot surfaces a freeform `ask_user` prompt in interactive mode, press **Ctrl+G** to open the answer text in your configured editor (the same editor set via the `editor` config setting). This is useful when you want to write a longer, multi-line answer without typing it inline.
+
 > **Auto allow-all mode (v1.0.69+)**: In addition to the standard allow-all mode (which approves everything), the CLI now supports an **auto allow-all** mode that uses an LLM judge to evaluate each tool request. When enabled, the judge automatically approves requests it evaluates as acceptable, and asks you for manual confirmation only for requests it considers risky. This gives you a middle ground between full autopilot and fully supervised operation — most routine actions proceed automatically while unusual or potentially dangerous actions still surface for your review. As of v1.0.69-3, this mode requires experimental features to be enabled — use `/experimental on` or start the CLI with `--experimental` — then activate it with `/allow-all auto`. The previous `AUTO_APPROVAL` environment variable approach has been removed in favour of experimental mode.
 
 > **Read-only `gh` CLI commands (v1.0.46+)**: Read-only `gh` commands — such as `gh issue list`, `gh pr view`, `gh run status`, and other commands that don't write to GitHub — are **automatically approved** without a permission prompt. Only commands that write to GitHub (like creating issues, merging PRs) still require explicit approval. This reduces friction during exploratory sessions where you frequently check issue or PR status.
@@ -719,6 +721,18 @@ copilot --config-dir ~/.my-copilot-config
 ```
 
 Set `COPILOT_HOME` in your shell profile to use a custom config directory across all sessions. This is especially useful when running multiple Copilot configurations for different projects or teams.
+
+### Authentication
+
+The `copilot login` command authenticates GitHub Copilot CLI with your GitHub account. As of v1.0.77, the default flow is a **browser-based OAuth web login**:
+
+```bash
+copilot login               # opens a browser window to complete OAuth authentication
+copilot login --web-flow    # explicitly use the browser-based web flow (default)
+copilot login --device-code # use the device code flow (for environments without a browser)
+```
+
+The `--device-code` option is useful in headless environments, SSH sessions, or CI pipelines where opening a browser is not possible. You'll be shown a URL and a short code to enter on another device to complete authentication.
 
 ### Shell Completion
 
