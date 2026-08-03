@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-07
+lastUpdated: 2026-08-03
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -520,6 +520,16 @@ This creates a branch named from your task description and begins working on it 
 
 After the command runs, the session is inside the new worktree. Use this when you want to work on a second task in parallel without stashing changes or opening a new terminal. In v1.0.64+ you can also use the experimental `--worktree` flag at startup (`copilot -w [name]`) to create or reuse a worktree under `<repo>.worktrees/` before the session begins.
 
+The `/new-worktree` command *(experimental, v1.0.78+)* creates a new worktree and opens a **new conversation** in it — rather than moving the current conversation to a worktree like `/worktree` does. This is useful when you want to dispatch a parallel task with a clean context window:
+
+```
+/new-worktree my-parallel-feature
+```
+
+After running the command, a new session starts inside the new worktree. Your original session remains backgrounded and accessible via the sessions list. Use `/new-worktree` when you want isolated parallel work — each worktree has its own branch, its own context, and can be monitored independently.
+
+> **Experimental**: `/new-worktree` is part of the experimental feature set. Enable experimental features with `/experimental on` or `--experimental` at startup if the command is not visible in your session.
+
 The `/every` command (also available as `/loop` since v1.0.64) schedules a recurring prompt to run automatically at a specified interval. The companion `/after` command runs a prompt once after a specified delay. Both are useful for self-paced automation — polling for results, periodically summarizing progress, or triggering other slash commands on a timer:
 
 ```
@@ -658,9 +668,17 @@ Use `/autopilot` when you want to flip between supervised and unsupervised opera
 
 > **Enhanced autopilot (v1.0.64+)**: When autopilot mode is active — including when launched with `--autopilot` at startup or during automatic continuation turns — the agent automatically handles elicitation dialogs, `ask_user` prompts, sampling requests, and permission prompts without surfacing them as interactive dialogs. This means long-running automated sessions can proceed end-to-end without manual confirmation steps.
 
-> **Auto allow-all mode (v1.0.69+)**: In addition to the standard allow-all mode (which approves everything), the CLI now supports an **auto allow-all** mode that uses an LLM judge to evaluate each tool request. When enabled, the judge automatically approves requests it evaluates as acceptable, and asks you for manual confirmation only for requests it considers risky. This gives you a middle ground between full autopilot and fully supervised operation — most routine actions proceed automatically while unusual or potentially dangerous actions still surface for your review. As of v1.0.69-3, this mode requires experimental features to be enabled — use `/experimental on` or start the CLI with `--experimental` — then activate it with `/allow-all auto`. The previous `AUTO_APPROVAL` environment variable approach has been removed in favour of experimental mode.
+> **Auto allow-all mode (v1.0.69+)**: In addition to the standard allow-all mode (which approves everything), the CLI now supports an **auto allow-all** mode that uses an LLM judge to evaluate each tool request. When enabled, the judge automatically approves requests it evaluates as acceptable, and asks you for manual confirmation only for requests it considers risky. This gives you a middle ground between full autopilot and fully supervised operation — most routine actions proceed automatically while unusual or potentially dangerous actions still surface for your review. As of v1.0.69-3, this mode requires experimental features to be enabled — use `/experimental on` or start the CLI with `--experimental` — then activate it with `/allow-all auto`. The previous `AUTO_APPROVAL` environment variable approach has been removed in favour of experimental mode. As of v1.0.78, the safety-judge model is **no longer user-configurable** — it is selected automatically by the CLI.
 
 > **Read-only `gh` CLI commands (v1.0.46+)**: Read-only `gh` commands — such as `gh issue list`, `gh pr view`, `gh run status`, and other commands that don't write to GitHub — are **automatically approved** without a permission prompt. Only commands that write to GitHub (like creating issues, merging PRs) still require explicit approval. This reduces friction during exploratory sessions where you frequently check issue or PR status.
+
+The `/permissions` command *(v1.0.78+)* opens an interactive menu to switch between approval modes for the current session. It provides a unified way to toggle between the different levels of tool-use permission instead of using separate commands:
+
+```
+/permissions
+```
+
+Use `/permissions` when you want to review and change the current approval mode at a glance. The menu shows all available modes — interactive (confirm each tool), auto (LLM judge), and allow-all (approve everything) — and lets you switch between them without memorizing individual command syntax. This is especially helpful when you want to temporarily raise or lower the automation level mid-session.
 
 The `--effort` flag (shorthand for `--reasoning-effort`) controls how much computational reasoning the model applies to a request:
 
@@ -671,6 +689,15 @@ gh copilot --effort high "Refactor the authentication module"
 Accepted values are `low`, `medium`, and `high`. You can also set a default via the `effortLevel` config setting.
 
 ### CLI Startup Flags
+
+**Authentication and login** (v1.0.77+): `copilot login` now defaults to a **browser-based (web) OAuth flow** on local interactive terminals — your browser opens automatically to complete authentication. On remote or headless terminals (SSH sessions, CI), device code flow remains the default. You can force a specific mode:
+
+```bash
+copilot login --web-flow     # force browser OAuth (local desktop)
+copilot login --device-code  # force device code (headless/remote)
+```
+
+You can also pick a login mode interactively using the `/login` slash command inside a running session. Use `--device-code` when running Copilot CLI over SSH or in environments where a browser redirect is not possible.
 
 The `-C <directory>` flag changes the working directory before starting, similar to `git -C` (v1.0.42+). This is useful for scripts or aliases that need to start Copilot CLI in a specific project directory without a separate `cd`:
 
