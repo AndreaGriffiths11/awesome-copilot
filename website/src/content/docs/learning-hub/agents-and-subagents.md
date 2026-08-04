@@ -3,7 +3,7 @@ title: 'Agents and Subagents'
 description: 'Learn how delegated subagents differ from primary agents, when to use them, and how to launch them in VS Code and Copilot CLI.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-01
+lastUpdated: 2026-08-04
 estimatedReadingTime: '9 minutes'
 tags:
   - agents
@@ -133,6 +133,30 @@ The important behavior is different from a single chat turn:
 - subagents share the same filesystem, so overlapping writes should be avoided
 
 That makes `/fleet` a practical way to launch subagents even if you are not authoring custom agent files yourself.
+
+### Sessions sidebar
+
+The **Sessions sidebar** (experimental, v1.0.76+) lets you manage multiple concurrent CLI sessions from a single terminal: switch between them, spawn new sessions, and see each session's status at a glance.
+
+Enable it with experimental mode:
+
+```
+/experimental on     # enable experimental features, which includes the Sessions sidebar
+```
+
+Once active, the sidebar appears alongside your active session. This is especially useful when running `/fleet` or other multi-agent workflows, since you can see all spawned sessions without losing track of the main session.
+
+### Creating a new worktree session
+
+The **`/new-worktree`** command (experimental, v1.0.78+) creates a fresh git worktree and immediately starts a new conversation in it — keeping the work isolated from your current branch:
+
+```
+/new-worktree       # create a new worktree and start a new conversation in it
+```
+
+This is handy when you want to hand off a parallel task to a subagent-style workflow without touching the branch you're currently working on. Each worktree gets its own session context, so the branches don't interfere.
+
+> **Note**: This is an experimental feature. Enable it with `/experimental on` and provide feedback via `/feedback`.
 
 ### Rubber-duck agent
 
