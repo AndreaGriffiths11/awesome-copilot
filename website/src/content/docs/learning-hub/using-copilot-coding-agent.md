@@ -3,7 +3,7 @@ title: 'Using the Copilot Coding Agent'
 description: 'Learn how to use GitHub Copilot coding agent to autonomously work on issues, generate pull requests, and automate development tasks.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-05-13
+lastUpdated: 2026-08-04
 estimatedReadingTime: '12 minutes'
 tags:
   - coding-agent
@@ -376,6 +376,39 @@ Since v1.0.47, `--resume` also surfaces **cloud agent sessions that haven't yet 
 | No PR required | You can steer tasks that haven't yet opened a pull request |
 
 > **Note**: Remote control replaces the earlier "steering" feature. If you see references to steering in older documentation, remote control is the updated equivalent.
+
+## Approval Modes
+
+When running Copilot CLI locally, you can control how the agent asks for your approval using the **`/permissions`** command (v1.0.78+):
+
+```
+/permissions        # switch between approval modes interactively
+```
+
+The three approval modes are:
+
+| Mode | Behavior |
+|------|----------|
+| **Interactive** (default) | Agent asks for approval before each tool call |
+| **Plan** | Agent first presents a plan for your review, then executes |
+| **Autopilot** | Agent executes without asking; you review the results at the end |
+
+Use autopilot for well-scoped tasks you trust, and switch back to interactive mode when working on sensitive or unfamiliar areas.
+
+## Undoing Agent Changes
+
+**`/rewind`** (v1.0.78+) lets you roll back changes made during a session without relying on git:
+
+```
+/rewind             # choose what to revert: conversation only, or conversation + files
+```
+
+Key improvements over earlier versions:
+- **No git required** — `/rewind` works even in repositories without a git history
+- **Selective file restoration** — only files Copilot changed are reverted; any file whose contents no longer match what Copilot last wrote is skipped
+- **Granular choice** — pick "conversation only" to keep file changes while rolling back the chat context, or "conversation + files" to restore both
+
+This is useful when an agent goes in the wrong direction mid-task and you want a clean starting point without manually reverting each file.
 
 ## Hooks and the Coding Agent
 
