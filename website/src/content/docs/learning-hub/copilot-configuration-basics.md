@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-07
+lastUpdated: 2026-08-05
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -470,11 +470,13 @@ You can also press **x** on a highlighted session in the session picker (`--resu
 
 In the session picker, press **`s`** to cycle the sort order: relevance, last used, created, or name. The picker also shows the branch name and idle/in-use status for each session.
 
-The `/rewind` command opens a timeline picker that lets you roll back the conversation to any earlier point in history, reverting both the conversation and any file changes made after that point. You can also trigger it by pressing **double-Esc**:
+The `/rewind` command opens a timeline picker that lets you roll back the conversation to any earlier point in history. You can also trigger it by pressing **double-Esc**:
 
 ```
 /rewind
 ```
+
+When you rewind, you'll be asked whether to restore the conversation only, or both the conversation and files. File restoration is selective — `/rewind` restores only the files Copilot changed, and skips any file whose current contents no longer match what Copilot last wrote (so manual edits are preserved). As of v1.0.78, `/rewind` no longer requires git.
 
 Use `/rewind` when you want to branch off from a different point in the conversation, rather than just undoing the most recent turn.
 
@@ -504,10 +506,11 @@ The `/cd` command changes the working directory for the current session. Since v
 
 This is useful when you have multiple backgrounded sessions each focused on a different project directory.
 
-The `/worktree` command (v1.0.61+, also aliased `/move`) creates a new git worktree and switches into it, moving any uncommitted changes along. This lets you start working on a parallel branch without leaving your current terminal session:
+The `/worktree` command (v1.0.61+) creates a new git worktree and switches into it, **leaving your uncommitted changes behind** in the original worktree. The companion `/move` command (v1.0.72+) does the same but **carries your uncommitted changes** into the new worktree. This lets you start working on a parallel branch without leaving your current terminal session:
 
 ```
-/worktree my-feature-branch
+/worktree my-feature-branch   # new worktree, leave changes here
+/move my-other-branch         # new worktree, bring changes along
 ```
 
 In v1.0.66+, you can pass a task description to `/worktree` to name the branch from the task and immediately run the task as the first prompt in the new worktree — all in one step:
@@ -518,7 +521,13 @@ In v1.0.66+, you can pass a task description to `/worktree` to name the branch f
 
 This creates a branch named from your task description and begins working on it immediately, making it easy to spin up parallel work without stopping to think of a branch name.
 
-After the command runs, the session is inside the new worktree. Use this when you want to work on a second task in parallel without stashing changes or opening a new terminal. In v1.0.64+ you can also use the experimental `--worktree` flag at startup (`copilot -w [name]`) to create or reuse a worktree under `<repo>.worktrees/` before the session begins.
+After the command runs, the session is inside the new worktree. Use `/worktree` when you want to start a parallel task and keep the current changes where they are. Use `/move` when you want to take your current uncommitted work into a new branch. In v1.0.64+ you can also use the experimental `--worktree` flag at startup (`copilot -w [name]`) to create or reuse a worktree under `<repo>.worktrees/` before the session begins.
+
+The `/new-worktree` command (v1.0.78+, experimental) is similar but starts a **new conversation** in the new worktree instead of continuing the current session. This is useful when you want a clean slate for a new task in an isolated branch while leaving your current session untouched:
+
+```
+/new-worktree fix-background-job
+```
 
 The `/every` command (also available as `/loop` since v1.0.64) schedules a recurring prompt to run automatically at a specified interval. The companion `/after` command runs a prompt once after a specified delay. Both are useful for self-paced automation — polling for results, periodically summarizing progress, or triggering other slash commands on a timer:
 
@@ -661,6 +670,15 @@ Use `/autopilot` when you want to flip between supervised and unsupervised opera
 > **Auto allow-all mode (v1.0.69+)**: In addition to the standard allow-all mode (which approves everything), the CLI now supports an **auto allow-all** mode that uses an LLM judge to evaluate each tool request. When enabled, the judge automatically approves requests it evaluates as acceptable, and asks you for manual confirmation only for requests it considers risky. This gives you a middle ground between full autopilot and fully supervised operation — most routine actions proceed automatically while unusual or potentially dangerous actions still surface for your review. As of v1.0.69-3, this mode requires experimental features to be enabled — use `/experimental on` or start the CLI with `--experimental` — then activate it with `/allow-all auto`. The previous `AUTO_APPROVAL` environment variable approach has been removed in favour of experimental mode.
 
 > **Read-only `gh` CLI commands (v1.0.46+)**: Read-only `gh` commands — such as `gh issue list`, `gh pr view`, `gh run status`, and other commands that don't write to GitHub — are **automatically approved** without a permission prompt. Only commands that write to GitHub (like creating issues, merging PRs) still require explicit approval. This reduces friction during exploratory sessions where you frequently check issue or PR status.
+
+The `/permissions` command (v1.0.78+) provides a unified way to switch between all approval modes in a single step, replacing the need to juggle `/allow-all` and `/autopilot` separately:
+
+```
+/permissions           # open the permissions picker
+/permissions approve   # approve all pending prompts in the current turn
+```
+
+Use `/permissions` when you want to change how the agent asks for confirmation — for example, switching from interactive mode to autopilot mid-session, or turning on the auto-approval judge.
 
 The `--effort` flag (shorthand for `--reasoning-effort`) controls how much computational reasoning the model applies to a request:
 
