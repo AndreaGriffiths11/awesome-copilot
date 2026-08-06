@@ -3,7 +3,7 @@ title: 'Installing and Using Plugins'
 description: 'Learn how to find, install, and manage plugins that extend GitHub Copilot CLI with reusable agents, skills, hooks, and integrations.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-24
+lastUpdated: 2026-08-06
 estimatedReadingTime: '8 minutes'
 tags:
   - plugins
@@ -182,6 +182,33 @@ Or from an interactive session:
 
 Browse to the plugin via `@agentPlugins` in the Extensions search view or via **Chat: Plugins** in the Command Palette, then click **Install**.
 
+## Installing Skills Directly
+
+In addition to full plugins, you can install individual skills directly into your environment from the CLI (v1.0.72+):
+
+```bash
+# Install a skill from a local directory
+copilot plugins install --skill ./my-skill/
+
+# Install a skill from a URL
+copilot plugins install --skill https://example.com/skill.zip
+
+# Install into the current repository (project scope)
+copilot plugins install --skill ./my-skill/ --scope project
+```
+
+Or from within an interactive session:
+
+```
+/plugins install --skill ./my-skill/
+```
+
+Installed skills appear in `copilot skill list`, where disabled skills are clearly marked. Remove a skill when you no longer need it:
+
+```bash
+copilot plugins remove --skill my-skill-name
+```
+
 ## Managing Plugins
 
 Once installed, plugins are managed with a few simple commands:
@@ -199,6 +226,18 @@ copilot plugin marketplace update
 # Remove a plugin
 copilot plugin uninstall my-plugin
 ```
+
+### Enabling and Disabling Components
+
+From within an interactive session, you can enable or disable individual plugins, instructions, agents, LSP servers, and hooks without uninstalling them (v1.0.76+):
+
+```
+/plugins          # open the plugins manager
+```
+
+In the `/plugins` view, select any item and toggle it. Disabled components are excluded from Copilot's context and won't run until re-enabled. This is useful for temporarily turning off a plugin that's causing unexpected behavior, without losing its configuration.
+
+The `copilot skill list` command also marks disabled skills in its output and JSON response.
 
 ### Loading Plugins from a Local Directory
 
