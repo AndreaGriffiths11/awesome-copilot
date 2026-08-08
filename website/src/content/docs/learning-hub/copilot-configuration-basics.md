@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-07
+lastUpdated: 2026-08-08
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -403,8 +403,26 @@ CLI settings use **camelCase** naming. Key settings added in recent releases:
 | `proxy` | HTTP(S) proxy URL for all outbound CLI requests (e.g., `http://proxy.example.com:8080`) (v1.0.64+) |
 | `sessionLimits` | Restrict credit or turn usage for a session; limits apply across the current conversation and reset on `/clear` (v1.0.66+) |
 | `stayInAutopilot` | Keep the CLI in autopilot mode after an autopilot task completes, instead of returning to interactive mode (v1.0.69+) |
+| `allowDevToolCaches` | Grant sandboxed builds access to toolchain caches and registries (on by default, v1.0.78+) |
 
 > **Note**: Older snake_case names (e.g., `include_gitignored`, `auto_updates_channel`) are still accepted for backward compatibility, but camelCase is now the preferred format.
+
+#### Authentication and Login
+
+To authenticate Copilot CLI with your GitHub account, run:
+
+```bash
+copilot login
+```
+
+**Browser-based (web) OAuth flow (v1.0.77+)**: `copilot login` now defaults to a **browser-based OAuth flow** on local interactive terminals — your browser opens automatically and completes the sign-in. The device code flow (where you copy a code into GitHub.com) remains the default for remote and headless environments. You can force a specific mode:
+
+```bash
+copilot login --web-flow    # force browser-based flow
+copilot login --device-code # force device code flow
+```
+
+You can also select the login method interactively with `/login` from within a running session.
 
 In addition to the main config file, GitHub Copilot CLI reads two optional per-project files for repository-specific overrides:
 
@@ -470,13 +488,13 @@ You can also press **x** on a highlighted session in the session picker (`--resu
 
 In the session picker, press **`s`** to cycle the sort order: relevance, last used, created, or name. The picker also shows the branch name and idle/in-use status for each session.
 
-The `/rewind` command opens a timeline picker that lets you roll back the conversation to any earlier point in history, reverting both the conversation and any file changes made after that point. You can also trigger it by pressing **double-Esc**:
+The `/rewind` command opens a timeline picker that lets you roll back the conversation to any earlier point in history. It restores the conversation and the files Copilot changed — and only those files. In v1.0.78+, `/rewind` no longer requires git, and it skips any file whose contents no longer match what Copilot last wrote (so manual edits are preserved). You can choose between a **conversation-only** rewind or a **conversation + files** rewind:
 
 ```
 /rewind
 ```
 
-Use `/rewind` when you want to branch off from a different point in the conversation, rather than just undoing the most recent turn.
+You can also trigger it by pressing **double-Esc**. Use `/rewind` when you want to branch off from a different point in the conversation, rather than just undoing the most recent turn.
 
 The `/undo` command reverts the last turn—including any file changes the agent made—letting you course-correct without manually undoing edits:
 
@@ -519,6 +537,15 @@ In v1.0.66+, you can pass a task description to `/worktree` to name the branch f
 This creates a branch named from your task description and begins working on it immediately, making it easy to spin up parallel work without stopping to think of a branch name.
 
 After the command runs, the session is inside the new worktree. Use this when you want to work on a second task in parallel without stashing changes or opening a new terminal. In v1.0.64+ you can also use the experimental `--worktree` flag at startup (`copilot -w [name]`) to create or reuse a worktree under `<repo>.worktrees/` before the session begins.
+
+The `/new-worktree` command (v1.0.78+, experimental) is a companion to `/worktree` that creates a new git worktree **and** starts a fresh conversation in it, leaving your uncommitted changes in the current session. Unlike `/worktree` (which carries your uncommitted changes along), `/new-worktree` is designed for starting an independent parallel task from a clean state:
+
+```
+/new-worktree                       # create a new worktree and start a new conversation
+/new-worktree fix the auth timeout  # name the branch from the task description
+```
+
+Enable experimental mode first (`/experimental on`) to use this command.
 
 The `/every` command (also available as `/loop` since v1.0.64) schedules a recurring prompt to run automatically at a specified interval. The companion `/after` command runs a prompt once after a specified delay. Both are useful for self-paced automation — polling for results, periodically summarizing progress, or triggering other slash commands on a timer:
 
@@ -655,6 +682,14 @@ The `/autopilot` command (v1.0.45+) is a quick in-session toggle that switches b
 ```
 
 Use `/autopilot` when you want to flip between supervised and unsupervised operation mid-session without typing out the full `/allow-all on` or `/allow-all off` commands.
+
+The `/permissions` command (v1.0.78+) provides an in-session way to switch between approval modes:
+
+```
+/permissions      # open the permissions mode picker
+```
+
+Use `/permissions` as a quick shortcut when you want to change how strictly the agent requests confirmation — for example, switching from interactive to autopilot mid-session, or tightening oversight when working in a sensitive repository. It surfaces the same modes available via `/allow-all` and `/autopilot` in a single focused menu.
 
 > **Enhanced autopilot (v1.0.64+)**: When autopilot mode is active — including when launched with `--autopilot` at startup or during automatic continuation turns — the agent automatically handles elicitation dialogs, `ask_user` prompts, sampling requests, and permission prompts without surfacing them as interactive dialogs. This means long-running automated sessions can proceed end-to-end without manual confirmation steps.
 
