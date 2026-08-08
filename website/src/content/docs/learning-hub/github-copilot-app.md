@@ -3,7 +3,7 @@ title: 'Getting Started with the GitHub Copilot app'
 description: 'Learn about the GitHub Copilot app, a desktop experience built for agent-native development. Understand its key features and who it''s for.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-17
+lastUpdated: 2026-08-08
 estimatedReadingTime: '8 minutes'
 tags:
   - copilot-app
@@ -66,6 +66,14 @@ Each session the Copilot app creates runs in its own **git worktree**—a real, 
 - You can pick up a session from any device, on any worktree
 
 This makes it easy to dispatch multiple agents and trust they won't interfere with each other.
+
+**Creating worktrees from the CLI (v1.0.78+)**: The experimental `/new-worktree` command in Copilot CLI lets you spin up a new worktree and start a fresh conversation in it without leaving your current session. This complements the Copilot app's worktree management for users who prefer working from the terminal:
+
+```
+/new-worktree fix the auth timeout   # new worktree, new conversation, clean state
+```
+
+Your uncommitted changes stay behind in the original session. Enable experimental mode first with `/experimental on`.
 
 ### Canvases
 
