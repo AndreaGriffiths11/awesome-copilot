@@ -3,7 +3,7 @@ title: 'Using the Copilot Coding Agent'
 description: 'Learn how to use GitHub Copilot coding agent to autonomously work on issues, generate pull requests, and automate development tasks.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-05-13
+lastUpdated: 2026-08-09
 estimatedReadingTime: '12 minutes'
 tags:
   - coding-agent
@@ -334,6 +334,45 @@ This repository provides a curated collection of agents, skills, and hooks desig
 
 > **Example workflow**: Combine a `test-specialist` agent with a `database-migrations` skill and a linting hook. Assign an issue to the coding agent using the test-specialist agent — it will automatically pick up the migrations skill when relevant, and the hook ensures all code is formatted before completion.
 
+## Managing Multiple Concurrent Sessions
+
+As of v1.0.79, Copilot CLI lets you run multiple independent sessions at the same time. Each session has its own context, conversation, and working state — you can switch between them without interrupting running work.
+
+### The Sessions Tab
+
+A dedicated **Sessions tab** in the CLI sidebar lists all active sessions. From here you can:
+
+- See all running sessions at a glance
+- Switch to a different session
+- Start a new session in a new worktree with `/worktree new`
+- Close a session without affecting others
+
+### Worktree-Based Sessions
+
+Use `/worktree new` to open a fresh session rooted in a new git worktree. This is useful when you want to work on an independent branch without affecting your current working tree:
+
+```text
+/worktree new
+```
+
+You can also start Copilot with a new worktree from the command line:
+
+```bash
+copilot --worktree
+```
+
+By default, new worktrees start from HEAD. To change the base to the remote default branch instead, set `worktreeBaseRef` in your settings:
+
+```json
+{
+  "worktreeBaseRef": "remote"
+}
+```
+
+Valid values are `"head"` (default) and `"remote"`. This setting applies to `/worktree`, `/worktree new`, and `--worktree`.
+
+> **Tip**: Switching between sessions no longer restarts MCP servers or rebuilds hook state — a turn running in another session is never interrupted.
+
 ## Remote Control
 
 You can connect to and steer a running coding agent session from a local Copilot CLI terminal using **remote control**. This lets you observe the agent's progress, send follow-up prompts, and redirect its work in real time — without waiting for it to open a PR first.
@@ -345,6 +384,14 @@ Launch a session that registers with GitHub for remote access:
 ```bash
 copilot --remote
 ```
+
+You can also combine `--plan` with `--mode autopilot` to have Copilot generate a plan first, then implement it automatically without waiting for your approval:
+
+```bash
+copilot --plan --mode autopilot
+```
+
+This is useful for well-scoped tasks where you trust Copilot to execute the plan without a checkpoint.
 
 Or open a remote control tab from inside an existing session, and check or toggle its state:
 
@@ -376,6 +423,40 @@ Since v1.0.47, `--resume` also surfaces **cloud agent sessions that haven't yet 
 | No PR required | You can steer tasks that haven't yet opened a pull request |
 
 > **Note**: Remote control replaces the earlier "steering" feature. If you see references to steering in older documentation, remote control is the updated equivalent.
+
+## Controlling Tool Permissions
+
+Use the `/permissions` command to switch between approval modes at any time during a session:
+
+```text
+/permissions
+```
+
+This opens a menu to choose how strictly Copilot asks for approval before executing tools. Available modes include:
+- **Approve all** — Copilot asks before every tool call
+- **Auto (default)** — Copilot uses judgment; asks only for potentially risky actions
+- **Allow-all** — Copilot executes all tools without asking (use carefully in trusted environments)
+
+> **Tip**: For autonomous coding agent tasks where you want minimal interruptions, set `/permissions` to an appropriate allow-all mode. For security-sensitive work, use approve-all.
+
+## Undoing Agent Changes with `/rewind`
+
+If the agent makes changes you want to discard, use `/rewind` to roll back Copilot's edits:
+
+```text
+/rewind
+```
+
+`/rewind` (v1.0.78+) offers two restore options:
+- **Conversation only** — Resets the conversation history without touching files
+- **Conversation + files** — Resets the conversation and restores any files Copilot modified
+
+Key behaviors:
+- Does **not** require git — it tracks which files Copilot changed independently
+- Only reverts files Copilot actually wrote; files you edited manually are skipped
+- Files whose contents changed after Copilot last wrote them (e.g., if you manually edited them) are also skipped
+
+This makes `/rewind` safe to use even in projects without git history.
 
 ## Hooks and the Coding Agent
 
