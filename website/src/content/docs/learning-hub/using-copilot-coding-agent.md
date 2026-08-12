@@ -3,7 +3,7 @@ title: 'Using the Copilot Coding Agent'
 description: 'Learn how to use GitHub Copilot coding agent to autonomously work on issues, generate pull requests, and automate development tasks.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-05-13
+lastUpdated: 2026-08-12
 estimatedReadingTime: '12 minutes'
 tags:
   - coding-agent
@@ -376,6 +376,68 @@ Since v1.0.47, `--resume` also surfaces **cloud agent sessions that haven't yet 
 | No PR required | You can steer tasks that haven't yet opened a pull request |
 
 > **Note**: Remote control replaces the earlier "steering" feature. If you see references to steering in older documentation, remote control is the updated equivalent.
+
+## Managing Multiple Concurrent Sessions
+
+The Copilot CLI now includes a **Sessions sidebar** for managing multiple concurrent sessions side by side. You can spawn new sessions, switch between them, and see their status at a glance — all without leaving the terminal.
+
+### Starting a New Session in a New Worktree
+
+Use `/worktree new` to start a fresh session in a brand-new git worktree:
+
+```
+/worktree new
+```
+
+This creates an isolated branch and worktree for the new session, so multiple agents can work in parallel without interfering with each other. You can then use the Sessions sidebar to switch between them.
+
+### Controlling Worktree Start Point
+
+By default, `/worktree`, `/worktree new`, and `--worktree` all start from `HEAD`. Use the `worktreeBaseRef` setting to change this to the remote default branch instead:
+
+```json
+{
+  "worktreeBaseRef": "origin/main"
+}
+```
+
+### Managing Approval Modes
+
+Use `/permissions` to switch between approval modes during a session:
+
+```
+/permissions
+```
+
+This opens an interactive picker letting you move between interactive (approve each action), `allow-all auto` (auto-approve safe actions), and other modes — without restarting the session.
+
+## Queuing Prompts for Sequential Execution
+
+You can queue prompts, shell commands, and slash commands to run in order after the current task finishes. This lets you line up a series of tasks without waiting for each one to complete:
+
+```
+# While an agent turn is running, type your next prompt and press Enter
+# The prompt is queued and runs automatically when the current turn completes
+```
+
+Use **Ctrl+C** to remove your newest queued message, or access the directable queue manager to reorder, edit, or remove queued items.
+
+## Combining Plan Mode with Autopilot
+
+You can now combine `--plan` with `--mode autopilot` to let the agent plan first and then implement without waiting for your approval at each step:
+
+```bash
+copilot --plan --mode autopilot
+```
+
+This is useful for well-scoped tasks where you trust the implementation but still want a planning phase. The agent creates a plan, then immediately proceeds to implement it autonomously.
+
+You can also set a model specifically for the planning phase:
+
+```
+/model plan <model-id>   # use a specific model during plan mode
+/model plan off          # clear the plan-specific model
+```
 
 ## Hooks and the Coding Agent
 
