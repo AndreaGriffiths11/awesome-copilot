@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-07
+lastUpdated: 2026-08-13
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -423,6 +423,16 @@ The model picker opens in a **full-screen view** with inline reasoning effort ad
 
 **Model family aliases** (v1.0.64+): Instead of typing a full model name, you can use short family aliases in the model setting: `opus`, `sonnet`, `haiku` (Anthropic), and `gpt`, `gemini` (Google/OpenAI). The CLI resolves the alias to the latest available model in that family. This is especially useful in scripts or configuration files where you want to track the best model in a family without hardcoding a version string.
 
+**Session-scoped `/model` and `/config model`** (v1.0.79+): The `/model` command is **session-scoped by default** — it changes the model for the current session only, without persisting to your settings. To set a default model for all future sessions, use the new `/config model` command:
+
+```
+/model claude-sonnet-4.6     # change model for this session only
+/config model claude-sonnet-4.6  # set default for all future sessions
+/config model                # open model picker to select a persistent default
+```
+
+The model picker (v1.0.79+) now groups models into **Recent**, **Recommended**, **New**, and other sections. Use **Shift+Tab** to switch between grouping views.
+
 ### CLI Session Commands
 
 The `/settings` command (v1.0.61+) opens an interactive dialog to browse and edit all user settings in one place. Use it to discover available settings, toggle options, and update values without manually editing your config file:
@@ -470,11 +480,15 @@ You can also press **x** on a highlighted session in the session picker (`--resu
 
 In the session picker, press **`s`** to cycle the sort order: relevance, last used, created, or name. The picker also shows the branch name and idle/in-use status for each session.
 
-The `/rewind` command opens a timeline picker that lets you roll back the conversation to any earlier point in history, reverting both the conversation and any file changes made after that point. You can also trigger it by pressing **double-Esc**:
+**Sessions sidebar for concurrent sessions** *(v1.0.79+)*: The Sessions tab and sidebar let you manage multiple concurrent sessions without leaving your current terminal. Switch between running sessions, spawn new ones, and see their status at a glance — all from within the same CLI window. The sidebar shows each session's active state so you can monitor parallel work without context-switching between separate terminals.
+
+The `/rewind` command opens a timeline picker that lets you roll back the conversation to any earlier point in history. You can also trigger it by pressing **double-Esc**:
 
 ```
 /rewind
 ```
+
+When rewinding, you choose whether to revert **conversation only** or **conversation + files**. As of v1.0.78, `/rewind` no longer requires git — it restores only the files Copilot changed (skipping any file whose contents no longer match what Copilot last wrote), so it works even in projects without a git repository.
 
 Use `/rewind` when you want to branch off from a different point in the conversation, rather than just undoing the most recent turn.
 
@@ -519,6 +533,23 @@ In v1.0.66+, you can pass a task description to `/worktree` to name the branch f
 This creates a branch named from your task description and begins working on it immediately, making it easy to spin up parallel work without stopping to think of a branch name.
 
 After the command runs, the session is inside the new worktree. Use this when you want to work on a second task in parallel without stashing changes or opening a new terminal. In v1.0.64+ you can also use the experimental `--worktree` flag at startup (`copilot -w [name]`) to create or reuse a worktree under `<repo>.worktrees/` before the session begins.
+
+Use `/worktree new` *(v1.0.79+)* to start a **fresh session** in a new worktree, without moving any uncommitted changes from the current session. This is useful when you want to keep your current work in place and spin up a completely independent session for a different task:
+
+```
+/worktree new                     # create a new worktree and start a fresh session
+/worktree new fix-auth-bug        # create a named worktree and start a fresh session
+```
+
+The `worktreeBaseRef` setting *(v1.0.79+)* controls whether `/worktree`, `/worktree new`, and `--worktree` start from `HEAD` or the remote default branch. All three default to `HEAD`:
+
+```json
+// settings.json
+{
+  "worktreeBaseRef": "HEAD"           // default — start from current HEAD
+  // "worktreeBaseRef": "origin/main" // start from the remote default branch
+}
+```
 
 The `/every` command (also available as `/loop` since v1.0.64) schedules a recurring prompt to run automatically at a specified interval. The companion `/after` command runs a prompt once after a specified delay. Both are useful for self-paced automation — polling for results, periodically summarizing progress, or triggering other slash commands on a timer:
 
@@ -586,6 +617,12 @@ Use `/diagnose` when a session is behaving unexpectedly — it inspects session 
 
 **Inline image rendering** (v1.0.64+): The CLI can display images inline in the terminal when your terminal supports it. If an MCP tool, agent, or attachment returns an image, it is rendered directly in the conversation timeline rather than shown as a file path or URL. This works in terminals with image protocol support (such as iTerm2, Kitty, Wezterm, and tmux with appropriate configuration).
 
+The `/app` command *(v1.0.79+)* opens the current session in the **GitHub Copilot desktop app**. If you're working in the CLI and want to switch to the app's visual interface — for monitoring sessions, using canvases, or accessing Agent Merge — run `/app` and it will open the app and navigate to your current session (requires GitHub Copilot app 1.1.3 or later):
+
+```
+/app      # open this session in the GitHub Copilot desktop app
+```
+
 The `/ask` command lets you ask a quick question without affecting your conversation history. The current session context is preserved, so you can use it for one-off lookups without derailing an ongoing task. Responses are rendered as full markdown, including tables and formatted links:
 
 ```
@@ -648,6 +685,12 @@ The `/allow-all` command (also accessible as `/yolo`) enables autopilot mode, wh
 
 > **ACP clients (v1.0.39+)**: ACP clients can also toggle allow-all mode programmatically via session configuration, without issuing a slash command. This is useful for automated pipelines that drive Copilot CLI through the ACP protocol.
 
+The `/permissions` command *(v1.0.78+)* is a unified way to switch between approval modes mid-session. Instead of using `/allow-all` subcommands, you can open a picker that lets you choose your preferred permission level:
+
+```
+/permissions      # open the approval mode picker
+```
+
 The `/autopilot` command (v1.0.45+) is a quick in-session toggle that switches between **interactive mode** (where the agent pauses to ask for confirmation before tool use) and **autopilot mode** (where it runs autonomously). Unlike `/allow-all` which specifically controls whether tool permissions are required, `/autopilot` toggles the overall agent mode:
 
 ```
@@ -689,6 +732,14 @@ copilot --plan          # start in plan mode (propose without executing)
 
 This is useful in scripts or CI pipelines where you want the CLI to immediately begin working in a specific mode without an interactive prompt.
 
+**Combine `--plan` with `--mode autopilot`** *(v1.0.79+)*: Use both flags together to have the CLI plan first, then automatically proceed to implement the plan without waiting for manual approval in between:
+
+```bash
+copilot --plan --mode autopilot "Refactor the authentication module"
+```
+
+This is ideal for long-running automated tasks where you want planning discipline (a written plan before action) but don't need to approve the transition from plan to implementation.
+
 The `--max-autopilot-continues` flag controls how many times Copilot can automatically continue in autopilot mode before pausing for confirmation. The default is 5:
 
 ```bash
@@ -719,6 +770,33 @@ copilot --config-dir ~/.my-copilot-config
 ```
 
 Set `COPILOT_HOME` in your shell profile to use a custom config directory across all sessions. This is especially useful when running multiple Copilot configurations for different projects or teams.
+
+### Sandbox Configuration
+
+The CLI's OS-level sandbox restricts what commands can read, write, and access on your machine — providing an important layer of protection during autonomous agent sessions.
+
+The `/sandbox` command opens an interactive dialog to configure and inspect sandbox settings:
+
+```
+/sandbox         # open the sandbox configuration dialog
+/sandbox policy  # show effective sandbox paths, denials, and network access (v1.0.79+)
+```
+
+Use `/sandbox policy` to confirm exactly what restrictions are active, which paths are denied, and whether outbound network access is allowed. This is especially useful when debugging why a sandboxed command is failing.
+
+**Breaking changes in v1.0.79**: Two sandbox settings were renamed. Update your `settings.json` if you have these configured:
+
+| Old key | New key | Notes |
+|---------|---------|-------|
+| `sandbox.gitAuth` | `sandbox.auth.git` | Opt-in git authentication inside the sandbox |
+| `sandbox.ghAuth` | `sandbox.auth.gh` | Opt-in gh CLI authentication inside the sandbox |
+| `allowDevToolCaches` | `allowDevToolAccess` | Grants access to toolchain caches and registries |
+
+The old keys are ignored silently — existing configurations **will not migrate automatically**. Update your `settings.json` and any MDM/managed policy files to use the new key names.
+
+**Dev tool access** (`allowDevToolAccess`, on by default): Grants sandboxed builds access to toolchain caches, registries, and installs so builds work without extra setup. Set to `false` to opt out if you want tighter isolation. This setting replaces the old `allowDevToolCaches` setting.
+
+**Managed (MDM) sandbox policy** *(v1.0.77+)*: Enterprise administrators can enforce a sandbox floor via macOS or Windows MDM settings. Managed settings tighten (but never loosen) the user's sandbox policy. The `/sandbox` dialog surfaces the org-configured values with locked fields so administrators and users can both see what's enforced.
 
 ### Shell Completion
 
