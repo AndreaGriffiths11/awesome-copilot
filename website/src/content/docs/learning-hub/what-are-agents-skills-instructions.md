@@ -1,11 +1,16 @@
 ---
-title: 'What are Agents, Skills, and Instructions'
+title: 'What are Agents, Skills, Instructions, Hooks, and Plugins'
 description: 'Understand the primary customization primitives that extend GitHub Copilot for specific workflows.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-02-26
-estimatedReadingTime: '7 minutes'
+lastUpdated: 2026-08-14
+estimatedReadingTime: '10 minutes'
 prev: false
+relatedArticles:
+  - ./automating-with-hooks.md
+  - ./installing-and-using-plugins.md
+  - ./agentic-workflows.md
+  - ./agents-and-subagents.md
 ---
 
 Building great experiences with GitHub Copilot starts with understanding the core primitives that shape how Copilot behaves in different contexts. This article clarifies what each artifact does, how it is packaged inside this repository, and when to use it.
@@ -58,6 +63,39 @@ Skills replace the earlier prompt file (`*.prompt.md`) pattern and offer several
 - You want agents to discover and invoke the capability automatically.
 - You prefer to drive the conversation, but with guardrails and rich context.
 
+## Hooks
+
+Hooks are shell scripts that run automatically at key lifecycle events during a Copilot agent session—when a session starts or ends, when a prompt is submitted, or before and after the agent uses a tool. Unlike instructions or skills, hooks are **deterministic and AI-independent**: they execute outside the model and can block actions (for example, preventing a commit that fails linting).
+
+Hooks live under `hooks/` in this repository, each in its own folder containing a `hooks.json` configuration and optional bundled scripts.
+
+### When to reach for a hook
+
+- You want to enforce formatting, linting, or security checks automatically.
+- You need a guardrail that must run every time—regardless of whether the AI remembers.
+- You want to intercept or enrich prompts before the model processes them.
+- You want to log or audit agent activity.
+
+See [Automating with Hooks](../automating-with-hooks/) for configuration details and examples.
+
+## Plugins
+
+Plugins are installable packages that bundle agents, skills, hooks, and MCP server configurations into a single unit you can install with one command. Instead of manually copying files and configuring servers across projects, plugins let you share a complete, versioned set of capabilities with your team or the community.
+
+Plugins are distributed through the GitHub Copilot CLI marketplace and can be installed with:
+
+```bash
+copilot plugin install <plugin-name>
+```
+
+### When to reach for a plugin
+
+- You want to distribute a curated set of agents, skills, and hooks as one unit.
+- You want to share a capability with your team or contribute to the community.
+- You need a self-contained toolkit that includes MCP server configuration.
+
+See [Installing and Using Plugins](../installing-and-using-plugins/) for installation and management instructions.
+
 ## Instructions
 
 Instructions (`*.instructions.md`) provide background context that Copilot reads whenever it works on matching files. They often contain:
@@ -81,17 +119,23 @@ Think of these artifacts as complementary layers:
 1. **Instructions** lay the groundwork with long-lived guardrails.
 2. **Skills** let you trigger rich, reusable workflows on demand—and let agents discover those workflows automatically.
 3. **Agents** bring the most opinionated behavior, bundling tools and instructions into a single persona.
+4. **Hooks** enforce deterministic guardrails at lifecycle boundaries, independent of the AI.
+5. **Plugins** bundle all of the above into shareable, installable packages.
+6. **Agentic Workflows** automate multi-step tasks by running agents in GitHub Actions on schedules, events, or slash commands.
 
-By combining all three, teams can achieve:
+By combining these primitives, teams can achieve:
 
 - Consistent onboarding for new developers.
 - Repeatable operations tasks with reduced context switching.
 - Tailored experiences for specialized domains (security, infrastructure, data science, etc.).
+- Automated enforcement of standards that doesn't rely on the AI remembering the rules.
 
 ## Next steps
 
 - Explore the rest of the **Fundamentals** track for deeper dives on chat modes, collections, and MCP servers.
 - Browse the [Awesome Agents](../../agents/), [Skills](../../skills/), and [Instructions](../../instructions/) directories for inspiration.
+- Learn how to automate lifecycle events with [Hooks](../automating-with-hooks/) and distribute your work as [Plugins](../installing-and-using-plugins/).
+- Automate GitHub repository tasks with [Agentic Workflows](../agentic-workflows/).
 - Try generating your own artifacts, then add them to the repo to keep the Learning Hub evolving.
 
 ---

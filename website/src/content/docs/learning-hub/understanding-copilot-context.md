@@ -3,14 +3,18 @@ title: 'Understanding Copilot Context'
 description: 'Learn how GitHub Copilot uses context from your code, workspace, and conversation to generate relevant suggestions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2025-11-28
-estimatedReadingTime: '8 minutes'
+lastUpdated: 2026-08-14
+estimatedReadingTime: '12 minutes'
 tags:
   - context
   - fundamentals
   - how-it-works
+  - mcp
+  - memory
 relatedArticles:
   - ./what-are-agents-skills-instructions.md
+  - ./understanding-mcp-servers.md
+  - ./defining-custom-instructions.md
 ---
 
 Context is the foundation of how GitHub Copilot generates relevant, accurate suggestions. Understanding what Copilot "sees" and how it uses that information helps you write better prompts, get higher-quality completions, and work more effectively with AI assistance. This article explains the types of context Copilot uses and how to optimize your development environment for better results.
@@ -136,15 +140,87 @@ Maximize GitHub Copilot's effectiveness by providing clear, relevant context:
 
 **Structure your workspace logically**: Organize files in meaningful directories that reflect your application architecture. Clear structure helps Copilot understand relationships between components.
 
-**Use #-mentions in chat**: When asking questions, explicitly reference files with `#filename` to ensure Copilot analyzes the exact code you're discussing.
+**Use #-mentions in chat**: When asking questions, explicitly reference files with `#filename` to ensure Copilot analyzes the exact code you're discussing. Use `#codebase` to trigger a semantic search across your entire repository.
 
 **Provide examples in prompts**: When asking Copilot to generate code, include examples of your existing patterns and conventions.
+
+## Persistent Context through Customization
+
+Beyond the context Copilot picks up automatically from your editor, you can provide **persistent, structured context** through customization primitives that Copilot loads at the start of every session:
+
+### Custom Instructions
+
+Instructions (`*.instructions.md`) give Copilot background knowledge that applies automatically whenever it works on matching files — coding standards, framework conventions, and project-specific rules. You write them once and they travel with the repository.
+
+```
+.github/
+└── instructions/
+    ├── coding-style.instructions.md   # Global coding standards
+    └── typescript.instructions.md     # TypeScript-specific rules
+```
+
+See [Defining Custom Instructions](../defining-custom-instructions/) for how to author and scope instructions.
+
+### Skills
+
+Skills bundle richer, task-specific context alongside executable instructions. A skill can include reference documents, templates, and scripts — not just text — giving Copilot much more to work with for specialized tasks.
+
+See [Creating Effective Skills](../creating-effective-skills/) for the skill authoring guide.
+
+### Agents
+
+Custom agents bake in persona-level context: which tools to use, which MCP servers to connect, and what role the agent plays. When you select an agent for a session, all of that context is loaded upfront.
+
+See [Building Custom Agents](../building-custom-agents/) for agent configuration.
+
+## MCP Servers as Context Providers
+
+[Model Context Protocol (MCP) servers](../understanding-mcp-servers/) are one of the most powerful ways to extend Copilot's context. MCP servers connect Copilot to external data sources and tools at runtime — databases, APIs, documentation systems, ticketing tools, and more.
+
+When an MCP server is connected, Copilot can:
+
+- **Fetch live data**: Query a database, pull tickets from Jira, or read documentation from Confluence
+- **Use tools**: Call functions exposed by the server (run a test, search a codebase, query an API)
+- **Ground responses**: Include retrieved facts directly in the context window to reduce hallucinations
+
+### Example: Database schema as context
+
+Without MCP, you might paste your schema into the chat. With an MCP database server:
+
+```text
+You: Write a migration to add a `last_login` column to the users table
+
+Copilot: [uses MCP to query current schema]
+         → Fetches users table definition
+         → Generates a migration matching your existing column conventions
+```
+
+The MCP server provides the schema as real, current context rather than stale information you manually pasted.
+
+### Configuring MCP servers
+
+MCP servers can be configured at the user, workspace, or repository level:
+
+```json
+// .github/mcp.json (repository-level)
+{
+  "servers": {
+    "my-database": {
+      "command": "npx",
+      "args": ["-y", "@my-org/mcp-server-db"],
+      "env": { "DB_URL": "${DB_URL}" }
+    }
+  }
+}
+```
+
+See [Understanding MCP Servers](../understanding-mcp-servers/) for a full configuration guide.
 
 ## Common Questions
 
 **Q: Does Copilot see my entire repository?**
 
-A: No, Copilot doesn't automatically analyze all files in your repository. It focuses on open files, recently modified files, and files directly referenced by your current work. For large codebases, this selective approach ensures fast response times while still providing relevant context.
+A: No, Copilot doesn't automatically analyze all files in your repository. It focuses on open files, recently modified files, and files directly referenced by your current work. For large codebases, this selective approach ensures fast response times while still providing relevant context. Use `#codebase` in chat to trigger a semantic search across the full repository when you need broader coverage.
 
 **Q: How do I know what context Copilot is using?**
 
@@ -154,19 +230,25 @@ A: In GitHub Copilot Chat, you can see which files are being referenced in respo
 
 A: Yes, you have several ways to control context:
 - Open/close files to change what's available to Copilot
-- Use `#` mentions to explicitly reference specific files, symbols or functions
+- Use `#` mentions to explicitly reference specific files, symbols, or functions
 - Configure `.gitignore` to exclude files from workspace context
 - Use instructions and skills to provide persistent context for specific scenarios
+- Connect MCP servers to give Copilot access to live external data
 
 **Q: Does closing a file remove it from context?**
 
 A: Yes, closing a file can remove it from Copilot's active context. However, files you've recently worked with may still influence suggestions briefly. For a clean context reset, you can restart your editor or start a new chat session.
 
+**Q: How do MCP servers extend context?**
+
+A: MCP (Model Context Protocol) servers connect Copilot to external data sources at runtime. When an MCP server is active, Copilot can call its tools to fetch live data — for example, querying a database schema, retrieving open tickets, or reading documentation. This is more reliable than pasting stale information manually. See [Understanding MCP Servers](../understanding-mcp-servers/) for setup instructions.
+
 ## Next Steps
 
 Now that you understand how context works in GitHub Copilot, explore these related topics:
 
-- **[What are Agents, Skills, and Instructions](../what-are-agents-skills-instructions/)** - Learn about customization types that provide persistent context
-- **[Copilot Configuration Basics](../copilot-configuration-basics/)** - Configure settings to optimize context usage
-- **[Creating Effective Skills](../creating-effective-skills/)** - Use context effectively in your skills
-- **Common Pitfalls and Solutions** _(coming soon)_ - Avoid context-related mistakes
+- **[What are Agents, Skills, Instructions, Hooks, and Plugins](../what-are-agents-skills-instructions/)** — Learn about customization types that provide persistent context
+- **[Understanding MCP Servers](../understanding-mcp-servers/)** — Connect Copilot to live data sources and tools
+- **[Defining Custom Instructions](../defining-custom-instructions/)** — Add persistent context through instructions
+- **[Copilot Configuration Basics](../copilot-configuration-basics/)** — Configure settings to optimize context usage
+- **[Creating Effective Skills](../creating-effective-skills/)** — Use context effectively in your skills
