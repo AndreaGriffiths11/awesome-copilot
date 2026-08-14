@@ -19,7 +19,7 @@ New to GitHub Copilot? Start here to understand the tools available to you.
 ## Fundamentals
 
 Essential concepts to tailor GitHub Copilot beyond its default experience. Start with
-[What are Agents, Skills, and Instructions](what-are-agents-skills-instructions/)
+[What are Agents, Skills, Instructions, Hooks, and Plugins](what-are-agents-skills-instructions/)
 and work through the full track to master every customization primitive. For delegation
 and orchestration patterns, continue with [Agents and Subagents](agents-and-subagents/).
 
