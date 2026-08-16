@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-07
+lastUpdated: 2026-08-16
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -419,6 +419,15 @@ These files follow the same format as `config.json` and are loaded after the glo
 
 The model picker opens in a **full-screen view** with inline reasoning effort adjustment. Use the **← / →** arrow keys to change the reasoning effort level (`low`, `medium`, `high`) directly from the picker without leaving the session. The current reasoning effort level is also displayed in the model header (e.g., `claude-sonnet-4.6 (high)`) so you always know which level is active.
 
+**Model picker sections** *(v1.0.79+)*: The model picker now groups models into **Recent**, **Recommended**, **New**, and other sections. Use **Shift+Tab** to switch between grouping views, making it easier to discover newly available models or return to ones you've used recently.
+
+**Session-scoped `/model`** *(v1.0.79+)*: The `/model` command is now session-scoped by default — changing the model in one session does not affect other sessions or future sessions. To set a persistent default model for all new sessions, use `/config model` instead:
+
+```
+/model claude-sonnet-4.6   # change model for this session only
+/config model              # open the model picker to set a persistent default
+```
+
 **Auto mode and server-side model routing** (v1.0.43+): When you select **Auto** as your model, the CLI uses server-side model routing for real-time model selection. Instead of locking in a single model at session start, Auto mode evaluates each request and routes it to the most appropriate model dynamically. This means straightforward questions can be handled by a faster model while complex reasoning tasks are automatically escalated — without you needing to switch models manually.
 
 **Model family aliases** (v1.0.64+): Instead of typing a full model name, you can use short family aliases in the model setting: `opus`, `sonnet`, `haiku` (Anthropic), and `gpt`, `gemini` (Google/OpenAI). The CLI resolves the alias to the latest available model in that family. This is especially useful in scripts or configuration files where you want to track the best model in a family without hardcoding a version string.
@@ -450,6 +459,8 @@ The `/session rename` command renames the current session. When called **without
 ```
 
 Auto-generated names help you find sessions quickly when switching between multiple backgrounded sessions.
+
+**Sessions tab and sidebar** *(v1.0.79+)*: The CLI now includes a dedicated **Sessions** tab and split-view sidebar for managing multiple concurrent sessions. Switch between sessions, spawn new ones, and see their status at a glance — all from within the same terminal window. The Sessions sidebar is enabled by default in v1.0.79+. Use `/new` to start a new concurrent session and switch back with the session picker.
 
 You can also name a session at startup with the `--name` flag, and resume it by name later:
 
@@ -520,6 +531,20 @@ This creates a branch named from your task description and begins working on it 
 
 After the command runs, the session is inside the new worktree. Use this when you want to work on a second task in parallel without stashing changes or opening a new terminal. In v1.0.64+ you can also use the experimental `--worktree` flag at startup (`copilot -w [name]`) to create or reuse a worktree under `<repo>.worktrees/` before the session begins.
 
+**`/worktree new`** *(v1.0.79+)*: Use `/worktree new` to start a new session in a fresh worktree, opening it in a new concurrent session tab rather than replacing your current one:
+
+```
+/worktree new my-feature   # new worktree in a new session
+```
+
+**`worktreeBaseRef` setting** *(v1.0.79+)*: The `worktreeBaseRef` setting controls whether `/worktree`, `/worktree new`, and `--worktree` start the new branch from the current `HEAD` or the remote default branch. All three now default to `HEAD`:
+
+```json
+{
+  "worktreeBaseRef": "HEAD"          // default — branch from HEAD
+}
+```
+
 The `/every` command (also available as `/loop` since v1.0.64) schedules a recurring prompt to run automatically at a specified interval. The companion `/after` command runs a prompt once after a specified delay. Both are useful for self-paced automation — polling for results, periodically summarizing progress, or triggering other slash commands on a timer:
 
 ```
@@ -579,6 +604,8 @@ The `/diagnose` command (v1.0.64+) analyzes the current session's logs and surfa
 Use `/diagnose` when a session is behaving unexpectedly — it inspects session logs and reports what it finds, making it easier to share diagnostics with support or understand what happened internally.
 
 **Keyboard shortcuts for queuing messages**: Use **Ctrl+Q** or **Ctrl+Enter** to queue a message (send it while the agent is still working). **Ctrl+D** no longer queues messages — it now has its default terminal behavior. If you have muscle memory for Ctrl+D queuing, switch to Ctrl+Q.
+
+**Queue manager** *(v1.0.79+)*: In addition to keyboard shortcuts, you can queue prompts, shell commands, and supported slash commands so they run in order after the current task finishes. A directable queue manager lets you reorder, edit, remove, repeat, and immediately send queued messages. The number of active queued items is shown in the footer status bar. Use **Ctrl+C** to remove your own most recently queued message.
 
 **Background running tasks**: Press **Ctrl+X → B** to move the current running task or shell command to the background. The task continues executing while you can type a new message or review earlier output. This is useful for long-running commands where you want to interact with the agent while waiting for the result.
 
@@ -688,6 +715,14 @@ copilot --plan          # start in plan mode (propose without executing)
 ```
 
 This is useful in scripts or CI pipelines where you want the CLI to immediately begin working in a specific mode without an interactive prompt.
+
+**Combining `--plan` with `--mode autopilot`** *(v1.0.79+)*: You can now combine `--plan` with `--mode autopilot` to have the agent generate a plan first and then immediately implement it in autopilot mode — without pausing for manual approval between the plan and implementation steps:
+
+```bash
+copilot --plan --mode autopilot "Add input validation to the registration form"
+```
+
+This is especially useful in CI pipelines or automated workflows where you want the full plan-then-implement cycle to run unattended.
 
 The `--max-autopilot-continues` flag controls how many times Copilot can automatically continue in autopilot mode before pausing for confirmation. The default is 5:
 
