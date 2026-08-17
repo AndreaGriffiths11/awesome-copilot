@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-07
+lastUpdated: 2026-08-17
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -403,6 +403,7 @@ CLI settings use **camelCase** naming. Key settings added in recent releases:
 | `proxy` | HTTP(S) proxy URL for all outbound CLI requests (e.g., `http://proxy.example.com:8080`) (v1.0.64+) |
 | `sessionLimits` | Restrict credit or turn usage for a session; limits apply across the current conversation and reset on `/clear` (v1.0.66+) |
 | `stayInAutopilot` | Keep the CLI in autopilot mode after an autopilot task completes, instead of returning to interactive mode (v1.0.69+) |
+| `worktreeBaseRef` | Controls whether `/worktree`, `/worktree new`, and `--worktree` start from `HEAD` or the remote default branch. Defaults to `HEAD` (v1.0.79+) |
 
 > **Note**: Older snake_case names (e.g., `include_gitignored`, `auto_updates_channel`) are still accepted for backward compatibility, but camelCase is now the preferred format.
 
@@ -418,6 +419,22 @@ These files follow the same format as `config.json` and are loaded after the glo
 ### Model Picker
 
 The model picker opens in a **full-screen view** with inline reasoning effort adjustment. Use the **← / →** arrow keys to change the reasoning effort level (`low`, `medium`, `high`) directly from the picker without leaving the session. The current reasoning effort level is also displayed in the model header (e.g., `claude-sonnet-4.6 (high)`) so you always know which level is active.
+
+**Grouped model sections** (v1.0.79+): The model picker now organises available models into labelled sections — **Recent**, **Recommended**, **New**, and other categories — so you can quickly find recently used or newly added models. Press **Shift+Tab** inside the picker to cycle between grouping views.
+
+**Session-scoped vs. persistent model selection** (v1.0.79+): `/model` changes the model for the current session only. To set a default model that persists across future sessions, use `/config model` instead:
+
+```
+/model claude-sonnet-4.6    # change model for this session only
+/config model               # open the picker to set a persistent default
+```
+
+**Per-mode model selection** (v1.0.74+): Use `/model plan` (or `/model --plan`) to choose a separate model that applies only while you are in plan mode. Pass a model ID, `off` to clear, or omit the ID to open the picker. When you leave plan mode the session reverts to the main model:
+
+```
+/model plan claude-opus-4   # use Opus for planning, revert when done
+/model plan off             # clear the plan-mode model
+```
 
 **Auto mode and server-side model routing** (v1.0.43+): When you select **Auto** as your model, the CLI uses server-side model routing for real-time model selection. Instead of locking in a single model at session start, Auto mode evaluates each request and routes it to the most appropriate model dynamically. This means straightforward questions can be handled by a faster model while complex reasoning tasks are automatically escalated — without you needing to switch models manually.
 
@@ -504,6 +521,12 @@ The `/cd` command changes the working directory for the current session. Since v
 
 This is useful when you have multiple backgrounded sessions each focused on a different project directory.
 
+**Sessions sidebar** (v1.0.79+): The **Sessions** tab in the sidebar lets you manage multiple concurrent sessions from a single view — switch between them, spawn new sessions, and see their status at a glance. Unlike the session picker (which requires resuming a backgrounded session), the sidebar shows all sessions in a persistent panel so you can track parallel workstreams without leaving the current session:
+
+```
+/sessions               # open the sessions sidebar (or click the Sessions tab)
+```
+
 The `/worktree` command (v1.0.61+, also aliased `/move`) creates a new git worktree and switches into it, moving any uncommitted changes along. This lets you start working on a parallel branch without leaving your current terminal session:
 
 ```
@@ -519,6 +542,13 @@ In v1.0.66+, you can pass a task description to `/worktree` to name the branch f
 This creates a branch named from your task description and begins working on it immediately, making it easy to spin up parallel work without stopping to think of a branch name.
 
 After the command runs, the session is inside the new worktree. Use this when you want to work on a second task in parallel without stashing changes or opening a new terminal. In v1.0.64+ you can also use the experimental `--worktree` flag at startup (`copilot -w [name]`) to create or reuse a worktree under `<repo>.worktrees/` before the session begins.
+
+The `/worktree new` command (v1.0.79+) creates a new worktree **and opens it in a brand-new session**, leaving the current session untouched. This is useful when you want to hand off work to a parallel session rather than switching the current one:
+
+```
+/worktree new              # create worktree + new session (auto-named branch)
+/worktree new my-feature   # create worktree + new session on a named branch
+```
 
 The `/every` command (also available as `/loop` since v1.0.64) schedules a recurring prompt to run automatically at a specified interval. The companion `/after` command runs a prompt once after a specified delay. Both are useful for self-paced automation — polling for results, periodically summarizing progress, or triggering other slash commands on a timer:
 
@@ -688,6 +718,16 @@ copilot --plan          # start in plan mode (propose without executing)
 ```
 
 This is useful in scripts or CI pipelines where you want the CLI to immediately begin working in a specific mode without an interactive prompt.
+
+**Combining plan and autopilot** (v1.0.79+): Pass `--plan` together with `--mode autopilot` (or `-p` with `--autopilot`) to have Copilot generate a plan first and then execute it automatically, without pausing for your approval between the two phases:
+
+```bash
+copilot --plan --mode autopilot "Refactor the authentication module"
+# or equivalently:
+copilot --plan --autopilot "Refactor the authentication module"
+```
+
+This is ideal for non-interactive pipelines where you want the structured thinking of plan mode combined with the speed of autopilot execution.
 
 The `--max-autopilot-continues` flag controls how many times Copilot can automatically continue in autopilot mode before pausing for confirmation. The default is 5:
 
