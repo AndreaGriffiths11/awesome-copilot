@@ -3,7 +3,7 @@ title: 'Using Automations in the GitHub Copilot app'
 description: 'A practical guide to getting started with Copilot app automations using templates, iterative refinement, and real-world examples.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-17
+lastUpdated: 2026-08-18
 estimatedReadingTime: '10 minutes'
 tags:
   - copilot-app
@@ -51,11 +51,45 @@ This often produces several concrete automation ideas in one pass. Then turn the
 2. Click **New automation**.
 3. Start from a template or from scratch.
 4. Give it a clear name and a specific prompt.
-5. Choose when it runs (manual, hourly, daily, or weekly).
-6. Optionally set mode, model, and reasoning effort.
-7. Use **Create and run** for the first run so you can immediately inspect output and refine.
+5. Choose when it runs — see [Trigger types](#trigger-types) below.
+6. Optionally enable **Run in the cloud** to let the automation run even when your computer is off (see [Cloud automations](#cloud-automations)).
+7. Optionally set mode, model, and reasoning effort.
+8. Use **Create and run** for the first run so you can immediately inspect output and refine.
 
 If your first version is only 70% right, that is normal. The fastest path is to iterate from a real run.
+
+## Trigger types
+
+Automations support a range of trigger types, from simple schedules to repository events:
+
+| Trigger | Description |
+|---|---|
+| **Manual** | Run only when you start it explicitly. |
+| **Hourly** | Run every hour. |
+| **Daily** | Run at one or more specific times each day. |
+| **Weekly** | Run on specific days and times each week. |
+| **CRON** | Enter a custom CRON expression for precise scheduling (local automations only). |
+| **Issue** | Triggered by repository issue events (e.g., issue created, labeled). Add a search query to limit which issues trigger it. |
+| **Pull request** | Triggered by PR events (e.g., opened, new commits pushed). Add filters to limit which PRs trigger it. |
+
+You can configure more than one trigger per automation — the automation runs when any of its triggers occur.
+
+**Event-based triggers** (Issue and Pull request) are particularly useful for automating triage, labeling, review assignment, or draft PR creation in response to real repository activity. For example, an automation triggered on `issue created` can automatically label incoming issues, assign them to a milestone, or start a draft fix.
+
+## Cloud automations
+
+Automations can run in two modes:
+
+- **Local** — Run from your local environment. The automation only runs while your computer is on and the app is running.
+- **Cloud** — Run in a cloud environment managed by GitHub. The automation runs on its schedule even when your computer is off.
+
+To create a cloud automation, enable **Run in the cloud** when configuring your automation. For cloud automations, use the **Tools** dropdown to select exactly which capabilities Copilot needs — for example, pushing changes, updating labels, or creating pull requests. Scoping tools to the minimum needed is good security practice.
+
+**Prerequisites for cloud automations:**
+
+- The Copilot cloud agent must be enabled for the repository.
+- For Copilot Business or Enterprise, an administrator must enable the cloud agent policy.
+- The organization must allow both the cloud agent and automations in the repository.
 
 ## Example: Awesome Copilot daily PR summary
 
