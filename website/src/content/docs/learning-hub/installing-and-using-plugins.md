@@ -3,7 +3,7 @@ title: 'Installing and Using Plugins'
 description: 'Learn how to find, install, and manage plugins that extend GitHub Copilot CLI with reusable agents, skills, hooks, and integrations.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-24
+lastUpdated: 2026-08-19
 estimatedReadingTime: '8 minutes'
 tags:
   - plugins
@@ -73,6 +73,8 @@ The `plugin.json` manifest declares what the plugin contains:
   ]
 }
 ```
+
+> **Open Plugin Spec v1** (v1.0.74+): Copilot CLI now supports **Open Plugin Spec v1** plugin manifests in addition to the GitHub-specific format, and also reads MCP server configuration from a **`mcp.json`** file at the plugin root. This improves cross-tool compatibility and lets plugin authors share a single manifest across different AI tools.
 
 ## Why Use Plugins?
 
@@ -199,6 +201,39 @@ copilot plugin marketplace update
 # Remove a plugin
 copilot plugin uninstall my-plugin
 ```
+
+### Enabling and Disabling Plugins
+
+You can enable or disable individual plugins, agents, skills, hooks, and MCP servers from a running session without uninstalling them (v1.0.76+):
+
+```
+/plugins enable my-plugin           # re-enable a disabled plugin
+/plugins disable my-plugin          # disable without uninstalling
+/plugins enable --skill my-skill    # enable/disable individual components
+/plugins disable --mcp my-server    # disable a specific MCP server
+```
+
+This is useful for temporarily turning off a plugin that's causing conflicts, or for testing whether removing a component changes behavior.
+
+### Auto-Updating Plugins
+
+**First-party plugins** (those from the official `copilot-plugins` marketplace) **automatically update to the latest version at session start** as of v1.0.78.
+
+For marketplace plugins from other sources, you can opt into auto-updates by adding `"autoUpdate": true` to the marketplace entry in your settings:
+
+```json
+{
+  "extraKnownMarketplaces": [
+    {
+      "name": "my-org-plugins",
+      "source": "my-org/internal-plugins",
+      "autoUpdate": true
+    }
+  ]
+}
+```
+
+With `autoUpdate` enabled, plugins from that marketplace are refreshed to the latest version each time a session starts — no manual `copilot plugin update` needed.
 
 ### Loading Plugins from a Local Directory
 
