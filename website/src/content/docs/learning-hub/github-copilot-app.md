@@ -3,7 +3,7 @@ title: 'Getting Started with the GitHub Copilot app'
 description: 'Learn about the GitHub Copilot app, a desktop experience built for agent-native development. Understand its key features and who it''s for.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-17
+lastUpdated: 2026-08-20
 estimatedReadingTime: '8 minutes'
 tags:
   - copilot-app
@@ -88,6 +88,12 @@ For a hands-on guide to building canvases with `/create-canvas`, see [Working wi
 
 You control the automation level—decide whether Agent Merge should just run CI, address feedback, or go all the way to merging. It's a way to let Copilot handle the tedious parts of the review and merge process.
 
+### Managing Multiple Sessions
+
+The Copilot app and CLI both support running multiple concurrent sessions. From the Copilot app, the **Sessions** view (available from the sidebar) shows all active, paused, and recently completed sessions at a glance. You can switch between sessions, spawn new ones, and monitor their status without losing track of work in progress.
+
+In the CLI, you can manage multiple concurrent sessions from the **Sessions** tab and sidebar (v1.0.79+). Each session is independent — it has its own model, context, and worktree — and you can switch between them without restarting MCP servers or losing hook state.
+
 ## Who is the Copilot app for?
 
 The Copilot app isn't a replacement for existing Copilot experiences—it's another tool in the toolbox. Here's who it serves best:
@@ -149,6 +155,18 @@ Each session runs in its own worktree with its own isolated environment. You can
 ### Launching Sessions from the Terminal with Deep Links
 
 The GitHub Copilot app supports URL deep links. This is useful when you want to open the app or start a session directly from your terminal workflow.
+
+### Jumping to the App from a CLI Session
+
+If you have an active GitHub Copilot CLI session and want to continue it in the desktop app, use the `/app` command (v1.0.79+, requires Copilot app 1.1.3 or later):
+
+```
+/app
+```
+
+This opens your current CLI session directly in the Copilot app — preserving the conversation and workspace context — rather than landing on the app's home screen with no context. It's useful when you've been iterating in the terminal and want to switch to the app's visual interface mid-task.
+
+### Deep Links
 
 Supported schemes:
 
