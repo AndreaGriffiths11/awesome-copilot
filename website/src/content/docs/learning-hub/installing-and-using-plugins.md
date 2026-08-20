@@ -3,7 +3,7 @@ title: 'Installing and Using Plugins'
 description: 'Learn how to find, install, and manage plugins that extend GitHub Copilot CLI with reusable agents, skills, hooks, and integrations.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-24
+lastUpdated: 2026-08-20
 estimatedReadingTime: '8 minutes'
 tags:
   - plugins
@@ -73,6 +73,8 @@ The `plugin.json` manifest declares what the plugin contains:
   ]
 }
 ```
+
+> **Open Plugin Spec v1** (v1.0.74+): Copilot CLI supports the [Open Plugin Spec v1](https://openpluginsspec.org/) plugin manifest format in addition to the native `plugin.json` format. Plugins using OPS v1 manifests alongside an `mcp.json` configuration file are automatically recognized and installed. This makes it straightforward to share plugins with other MCP-compatible tools that follow the same specification.
 
 ## Why Use Plugins?
 
@@ -199,6 +201,47 @@ copilot plugin marketplace update
 # Remove a plugin
 copilot plugin uninstall my-plugin
 ```
+
+### Auto-Updating Plugins
+
+**First-party plugins** (from the `copilot-plugins` marketplace) are updated automatically to the latest version each time a session starts (v1.0.78+).
+
+For **marketplace plugins from other sources**, you can opt into automatic updates per-marketplace by setting `autoUpdate: true` in your `extraKnownMarketplaces` configuration:
+
+```json
+{
+  "extraKnownMarketplaces": [
+    {
+      "name": "my-org-plugins",
+      "source": "my-org/internal-plugins",
+      "autoUpdate": true
+    }
+  ]
+}
+```
+
+With `autoUpdate` enabled, Copilot CLI fetches the latest plugin versions from that marketplace each time a session starts, keeping your team's tooling current without manual `copilot plugin update` runs.
+
+### Enabling and Disabling Plugins
+
+From inside any interactive Copilot session, the `/plugins` command (v1.0.76+) lets you manage what's active without uninstalling:
+
+```
+/plugins                        # list all plugins
+/plugins enable my-plugin       # enable a disabled plugin
+/plugins disable my-plugin      # disable without uninstalling
+/plugins update my-plugin       # update to latest version
+/plugins uninstall my-plugin    # remove entirely
+```
+
+You can also target individual components within a plugin:
+
+```
+/plugins disable --mcp my-plugin-server     # disable an MCP server from a plugin
+/plugins disable --skill generate-tests     # disable a specific skill
+```
+
+Disabling is useful for temporarily turning off a plugin's hooks or agents without losing the installation, or for troubleshooting conflicts between plugins.
 
 ### Loading Plugins from a Local Directory
 
