@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-07
+lastUpdated: 2026-08-21
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -403,6 +403,8 @@ CLI settings use **camelCase** naming. Key settings added in recent releases:
 | `proxy` | HTTP(S) proxy URL for all outbound CLI requests (e.g., `http://proxy.example.com:8080`) (v1.0.64+) |
 | `sessionLimits` | Restrict credit or turn usage for a session; limits apply across the current conversation and reset on `/clear` (v1.0.66+) |
 | `stayInAutopilot` | Keep the CLI in autopilot mode after an autopilot task completes, instead of returning to interactive mode (v1.0.69+) |
+| `defaultMode` | Default agent mode for new interactive sessions: `interactive`, `autopilot`, or `plan`. Overridden by `--mode` at startup (v1.0.81+) |
+| `defaultPermissionMode` | Default approval behavior for new interactive sessions: `auto`, `manual`, or `allow-all`. Overridden by `--permissions` at startup (v1.0.81+) |
 
 > **Note**: Older snake_case names (e.g., `include_gitignored`, `auto_updates_channel`) are still accepted for backward compatibility, but camelCase is now the preferred format.
 
@@ -577,6 +579,10 @@ The `/diagnose` command (v1.0.64+) analyzes the current session's logs and surfa
 ```
 
 Use `/diagnose` when a session is behaving unexpectedly — it inspects session logs and reports what it finds, making it easier to share diagnostics with support or understand what happened internally.
+
+**Voice dictation** (v1.0.81+): Press **Ctrl+Space** to toggle voice dictation on or off. When active, speech is transcribed directly into the prompt input, letting you describe tasks or ask questions hands-free. Voice mode also automatically pauses playing media before recording and resumes it afterward (on macOS and Windows).
+
+**Session restore on startup** (v1.0.81+): When the CLI exits unexpectedly — due to a crash, a machine restart, or a closed terminal — it detects any sessions that were still open and offers to restore them when you next start the CLI. No more losing context after an unplanned shutdown.
 
 **Keyboard shortcuts for queuing messages**: Use **Ctrl+Q** or **Ctrl+Enter** to queue a message (send it while the agent is still working). **Ctrl+D** no longer queues messages — it now has its default terminal behavior. If you have muscle memory for Ctrl+D queuing, switch to Ctrl+Q.
 
