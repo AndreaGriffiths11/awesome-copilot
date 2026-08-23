@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-07
+lastUpdated: 2026-08-23
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -403,6 +403,8 @@ CLI settings use **camelCase** naming. Key settings added in recent releases:
 | `proxy` | HTTP(S) proxy URL for all outbound CLI requests (e.g., `http://proxy.example.com:8080`) (v1.0.64+) |
 | `sessionLimits` | Restrict credit or turn usage for a session; limits apply across the current conversation and reset on `/clear` (v1.0.66+) |
 | `stayInAutopilot` | Keep the CLI in autopilot mode after an autopilot task completes, instead of returning to interactive mode (v1.0.69+) |
+| `defaultMode` | Set the startup agent mode for new interactive sessions (`agent`, `autopilot`, `plan`); avoids needing to pass `--mode` on every launch (v1.0.81-6+) |
+| `defaultPermissionMode` | Set the default approval behaviour for new interactive sessions (e.g., `auto`, `manual`); lets you persist your preferred permission level across restarts (v1.0.81-6+) |
 
 > **Note**: Older snake_case names (e.g., `include_gitignored`, `auto_updates_channel`) are still accepted for backward compatibility, but camelCase is now the preferred format.
 
@@ -422,6 +424,12 @@ The model picker opens in a **full-screen view** with inline reasoning effort ad
 **Auto mode and server-side model routing** (v1.0.43+): When you select **Auto** as your model, the CLI uses server-side model routing for real-time model selection. Instead of locking in a single model at session start, Auto mode evaluates each request and routes it to the most appropriate model dynamically. This means straightforward questions can be handled by a faster model while complex reasoning tasks are automatically escalated — without you needing to switch models manually.
 
 **Model family aliases** (v1.0.64+): Instead of typing a full model name, you can use short family aliases in the model setting: `opus`, `sonnet`, `haiku` (Anthropic), and `gpt`, `gemini` (Google/OpenAI). The CLI resolves the alias to the latest available model in that family. This is especially useful in scripts or configuration files where you want to track the best model in a family without hardcoding a version string.
+
+### Voice Dictation
+
+Copilot CLI supports voice dictation directly in the input box (v1.0.81-7+). Press **Ctrl+Space** to toggle voice input on and off. When active, your speech is transcribed in real time and inserted at the cursor, so you can dictate prompts hands-free without leaving the terminal.
+
+Voice dictation works in the main chat input and in any multi-line editor that the CLI opens. You can mix typing and dictation freely — toggle it on, speak a phrase, then toggle it off and continue typing.
 
 ### CLI Session Commands
 
@@ -719,6 +727,26 @@ copilot --config-dir ~/.my-copilot-config
 ```
 
 Set `COPILOT_HOME` in your shell profile to use a custom config directory across all sessions. This is especially useful when running multiple Copilot configurations for different projects or teams.
+
+The `--with-token` flag for `copilot login` reads an auth token from stdin instead of opening a browser OAuth flow (v1.0.81-6+). This is particularly useful for CI environments, container setups, or scripts where interactive browser auth is not available:
+
+```bash
+echo "$MY_GITHUB_TOKEN" | copilot login --with-token
+```
+
+The `--add-dir` flag (v1.0.81-8+) tells the CLI to discover custom agents and skills from an additional directory, on top of the built-in search paths. You can pass it multiple times to include several directories:
+
+```bash
+copilot --add-dir ~/my-shared-agents --add-dir ~/team-skills
+```
+
+This is useful for sharing a common set of agents or skills across multiple projects without copying files into each repository's `.github/` directory.
+
+### Session Restore After Restart
+
+When the CLI exits unexpectedly — due to a crash, machine restart, or force-quit — it offers to restore any sessions that were still open the next time it launches (v1.0.81-7+). This means you no longer lose in-progress conversations or agent tasks if your terminal goes away mid-session.
+
+When sessions are available to restore, the startup screen shows a prompt asking if you'd like to resume them. You can restore all, select specific ones, or skip and start fresh.
 
 ### Shell Completion
 
