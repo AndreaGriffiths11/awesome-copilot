@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-07
+lastUpdated: 2026-08-25
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -394,7 +394,7 @@ CLI settings use **camelCase** naming. Key settings added in recent releases:
 | Setting | Description |
 |---------|-------------|
 | `includeCoAuthoredBy` | Include Co-authored-by trailer in commits |
-| `effortLevel` | Default reasoning effort level (`low`, `medium`, `high`) |
+| `effortLevel` | Default reasoning effort level (`low`, `medium`, `high`, `xhigh`). `xhigh` is supported on select models such as Grok 4.6 |
 | `autoUpdatesChannel` | Update channel (`stable`, `preview`) |
 | `statusLine` | Show status line in the terminal UI |
 | `include_gitignored` | Include gitignored files in `@` file search |
@@ -403,6 +403,8 @@ CLI settings use **camelCase** naming. Key settings added in recent releases:
 | `proxy` | HTTP(S) proxy URL for all outbound CLI requests (e.g., `http://proxy.example.com:8080`) (v1.0.64+) |
 | `sessionLimits` | Restrict credit or turn usage for a session; limits apply across the current conversation and reset on `/clear` (v1.0.66+) |
 | `stayInAutopilot` | Keep the CLI in autopilot mode after an autopilot task completes, instead of returning to interactive mode (v1.0.69+) |
+| `defaultMode` | Default startup mode for new interactive sessions (`interactive`, `autopilot`, or `plan`). Saves you from passing `--autopilot` or `--plan` on every launch (v1.0.81-6+) |
+| `defaultPermissionMode` | Default permission/approval behaviour for new interactive sessions (`auto`, `allow-all`, `bypass`, etc.) (v1.0.81-6+) |
 
 > **Note**: Older snake_case names (e.g., `include_gitignored`, `auto_updates_channel`) are still accepted for backward compatibility, but camelCase is now the preferred format.
 
@@ -417,7 +419,9 @@ These files follow the same format as `config.json` and are loaded after the glo
 
 ### Model Picker
 
-The model picker opens in a **full-screen view** with inline reasoning effort adjustment. Use the **← / →** arrow keys to change the reasoning effort level (`low`, `medium`, `high`) directly from the picker without leaving the session. The current reasoning effort level is also displayed in the model header (e.g., `claude-sonnet-4.6 (high)`) so you always know which level is active.
+The model picker opens in a **full-screen view** with inline reasoning effort adjustment. Use the **← / →** arrow keys to change the reasoning effort level (`low`, `medium`, `high`) directly from the picker without leaving the session. The current reasoning effort level is also displayed in the model header (e.g., `claude-sonnet-4.6 (high)`) so you always know which level is active. Some models (such as Grok 4.6) also support an `xhigh` effort level for maximum reasoning depth.
+
+**Model data retention warnings**: The `/model` picker now shows data retention warnings and links per model where applicable, so you can check a model's data-handling policy before switching to it.
 
 **Auto mode and server-side model routing** (v1.0.43+): When you select **Auto** as your model, the CLI uses server-side model routing for real-time model selection. Instead of locking in a single model at session start, Auto mode evaluates each request and routes it to the most appropriate model dynamically. This means straightforward questions can be handled by a faster model while complex reasoning tasks are automatically escalated — without you needing to switch models manually.
 
@@ -668,7 +672,7 @@ The `--effort` flag (shorthand for `--reasoning-effort`) controls how much compu
 gh copilot --effort high "Refactor the authentication module"
 ```
 
-Accepted values are `low`, `medium`, and `high`. You can also set a default via the `effortLevel` config setting.
+Accepted values are `low`, `medium`, `high`, and `xhigh` (where supported by the model). You can also set a default via the `effortLevel` config setting.
 
 ### CLI Startup Flags
 
@@ -719,6 +723,16 @@ copilot --config-dir ~/.my-copilot-config
 ```
 
 Set `COPILOT_HOME` in your shell profile to use a custom config directory across all sessions. This is especially useful when running multiple Copilot configurations for different projects or teams.
+
+The `copilot login --with-token` flag reads an authentication token from stdin, making it easy to authenticate in CI pipelines or automated setups without interactive prompts (v1.0.81-6+):
+
+```bash
+echo "$COPILOT_TOKEN" | copilot login --with-token
+```
+
+### Session Restore on Startup
+
+When the CLI starts, it checks for sessions that were still open when a previous CLI instance exited unexpectedly (for example, after a crash or machine restart). If any are found, the CLI offers to restore them so you can pick up where you left off without manually reopening each terminal (v1.0.81-7+).
 
 ### Shell Completion
 
