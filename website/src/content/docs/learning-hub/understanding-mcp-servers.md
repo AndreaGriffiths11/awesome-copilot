@@ -3,7 +3,7 @@ title: 'Understanding MCP Servers'
 description: 'Learn how Model Context Protocol servers extend GitHub Copilot with access to external tools, databases, and APIs.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-06
+lastUpdated: 2026-08-26
 estimatedReadingTime: '8 minutes'
 tags:
   - mcp
@@ -331,6 +331,8 @@ GitHub organizations can enforce a policy that restricts which third-party MCP s
 - A **warning is shown** if a configured MCP server is blocked by the policy, so you know which servers are restricted before expecting them to work.
 
 If you see a warning that an MCP server is blocked, contact your organization administrator to find out which servers are on the allowlist, or switch to an approved alternative.
+
+In v1.0.81, the `/mcp` command was updated to clearly show blocked MCP servers as **blocked** (rather than leaving them in a pending spinner state), making it easier to identify policy-restricted servers at a glance.
 
 ## Common Questions
 
