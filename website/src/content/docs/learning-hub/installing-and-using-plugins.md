@@ -3,7 +3,7 @@ title: 'Installing and Using Plugins'
 description: 'Learn how to find, install, and manage plugins that extend GitHub Copilot CLI with reusable agents, skills, hooks, and integrations.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-24
+lastUpdated: 2026-08-27
 estimatedReadingTime: '8 minutes'
 tags:
   - plugins
@@ -160,6 +160,22 @@ To automatically register an additional marketplace for everyone working in a re
 
 With this in place, team members automatically get the `my-org-plugins` marketplace available without running a separate `marketplace add` command. This replaces the older `marketplaces` setting, which was removed in v1.0.16.
 
+You can also configure a marketplace to **auto-update its plugins at session start** (v1.0.79+) by adding `"autoUpdate": true`:
+
+```json
+{
+  "extraKnownMarketplaces": [
+    {
+      "name": "my-org-plugins",
+      "source": "my-org/internal-plugins",
+      "autoUpdate": true
+    }
+  ]
+}
+```
+
+With `autoUpdate` enabled, plugins from that marketplace are automatically updated to the latest version each time a new session starts — no manual `copilot plugin update` required.
+
 ## Installing Plugins
 
 ### From Copilot CLI
@@ -199,6 +215,20 @@ copilot plugin marketplace update
 # Remove a plugin
 copilot plugin uninstall my-plugin
 ```
+
+### The Plugins Dashboard
+
+**As of v1.0.81**, the unified plugins dashboard is available to all users. Run any of the following in an interactive session to open it:
+
+```
+/plugin     # open the plugins dashboard
+/mcp        # opens directly in the MCP tab
+/skills     # opens directly in the skills tab
+```
+
+The dashboard provides a single view to browse installed plugins, MCP servers, and skills — including update notifications when a newer version is available upstream. When `/plugin` flags an installed plugin with a newer version, you can update it directly from within the dashboard.
+
+> **Breaking change (v1.0.81)**: The legacy `/plugins` command has been removed. Its resources are now available through the dedicated commands: `/plugin` (agents, plugins), `/mcp` (MCP servers), `/skills` (skills), `/subagents` (subagents), and `/instructions` (instruction files).
 
 ### Loading Plugins from a Local Directory
 

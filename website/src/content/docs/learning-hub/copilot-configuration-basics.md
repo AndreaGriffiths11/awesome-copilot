@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-07
+lastUpdated: 2026-08-27
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -403,6 +403,8 @@ CLI settings use **camelCase** naming. Key settings added in recent releases:
 | `proxy` | HTTP(S) proxy URL for all outbound CLI requests (e.g., `http://proxy.example.com:8080`) (v1.0.64+) |
 | `sessionLimits` | Restrict credit or turn usage for a session; limits apply across the current conversation and reset on `/clear` (v1.0.66+) |
 | `stayInAutopilot` | Keep the CLI in autopilot mode after an autopilot task completes, instead of returning to interactive mode (v1.0.69+) |
+| `defaultMode` | Default startup mode for new interactive sessions (`interactive`, `plan`, or `autopilot`) (v1.0.81+) |
+| `defaultPermissionMode` | Default approval behavior for new interactive sessions (v1.0.81+) |
 
 > **Note**: Older snake_case names (e.g., `include_gitignored`, `auto_updates_channel`) are still accepted for backward compatibility, but camelCase is now the preferred format.
 
@@ -419,9 +421,17 @@ These files follow the same format as `config.json` and are loaded after the glo
 
 The model picker opens in a **full-screen view** with inline reasoning effort adjustment. Use the **← / →** arrow keys to change the reasoning effort level (`low`, `medium`, `high`) directly from the picker without leaving the session. The current reasoning effort level is also displayed in the model header (e.g., `claude-sonnet-4.6 (high)`) so you always know which level is active.
 
-**Auto mode and server-side model routing** (v1.0.43+): When you select **Auto** as your model, the CLI uses server-side model routing for real-time model selection. Instead of locking in a single model at session start, Auto mode evaluates each request and routes it to the most appropriate model dynamically. This means straightforward questions can be handled by a faster model while complex reasoning tasks are automatically escalated — without you needing to switch models manually.
+**Auto mode and server-side model routing** (v1.0.43+): When you select **Auto** as your model, the CLI uses server-side model routing for real-time model selection. Instead of locking in a single model at session start, Auto mode evaluates each request and routes it to the most appropriate model dynamically. This means straightforward questions can be handled by a faster model while complex reasoning tasks are automatically escalated — without you needing to switch models manually. **As of v1.0.79+, Auto mode also adapts model selection as your task evolves during a conversation**, so the model choice stays optimal as you shift from planning to coding to debugging.
 
 **Model family aliases** (v1.0.64+): Instead of typing a full model name, you can use short family aliases in the model setting: `opus`, `sonnet`, `haiku` (Anthropic), and `gpt`, `gemini` (Google/OpenAI). The CLI resolves the alias to the latest available model in that family. This is especially useful in scripts or configuration files where you want to track the best model in a family without hardcoding a version string.
+
+**Session-scoped model selection (v1.0.79+)**: `/model` is now session-scoped by default — changing the model in one session does not affect other sessions or your default for new sessions. To set a persistent default model for future sessions, use:
+
+```
+/config model          # set the default model for new sessions
+```
+
+Use `/model` for one-off overrides within a session, and `/config model` when you want to change your default going forward.
 
 ### CLI Session Commands
 
@@ -457,6 +467,8 @@ You can also name a session at startup with the `--name` flag, and resume it by 
 copilot --name "auth-refactor"          # start a session with a given name
 copilot --resume="auth-refactor"        # resume that session by name
 ```
+
+**Session restoration after crashes (v1.0.81+)**: When the CLI starts up, it automatically offers to restore any sessions that were still open when the CLI last exited (due to a crash, forced quit, or machine restart). You no longer lose in-progress sessions after an unexpected exit — just accept the restore prompt at startup to pick up where you left off.
 
 The `/session delete` command removes sessions you no longer need:
 
@@ -520,6 +532,15 @@ This creates a branch named from your task description and begins working on it 
 
 After the command runs, the session is inside the new worktree. Use this when you want to work on a second task in parallel without stashing changes or opening a new terminal. In v1.0.64+ you can also use the experimental `--worktree` flag at startup (`copilot -w [name]`) to create or reuse a worktree under `<repo>.worktrees/` before the session begins.
 
+The `/worktree new` command (v1.0.79+) starts a **new independent session** in a fresh worktree. Unlike `/worktree` (which moves your current session to a new branch), `/worktree new` opens a separate session alongside your current one:
+
+```
+/worktree new                        # new session in a new worktree
+/worktree new "fix the login bug"    # new session with an opening prompt
+```
+
+Use `/worktree new` when you want to keep your current session active and spin up a parallel agent on a different task without switching sessions.
+
 The `/every` command (also available as `/loop` since v1.0.64) schedules a recurring prompt to run automatically at a specified interval. The companion `/after` command runs a prompt once after a specified delay. Both are useful for self-paced automation — polling for results, periodically summarizing progress, or triggering other slash commands on a timer:
 
 ```
@@ -534,6 +555,8 @@ The interval can be specified in seconds (`s`), minutes (`m`), or hours (`h`), a
 > **Experimental**: `/every`, `/loop`, and `/after` are part of the experimental feature set. They appear in the `/experimental` slash command list — enable experimental features if they are not already visible in your current session.
 
 > **Note**: Scheduled prompts run in the background of the current session and use your active model. They share the session context window, so very frequent scheduling with long responses may consume context rapidly. Use `/compact` if context usage becomes a concern.
+
+**Prompt queueing (v1.0.79+)**: You can queue prompts, shell commands, and supported slash commands to run in order after the current task finishes. This lets you line up work without waiting for each step to complete. Type your next prompt while the agent is still running — it will execute once the current turn is done. This is especially useful for chaining multiple tasks in a local session without manual intervention.
 
 The `/pr auto` command *(v1.0.66+)* starts a self-paced automation loop that drives the current pull request to CI green. Rather than running continuously, it fixes one failing item per run and paces itself around CI checks to avoid redundant work:
 
@@ -583,6 +606,8 @@ Use `/diagnose` when a session is behaving unexpectedly — it inspects session 
 **Background running tasks**: Press **Ctrl+X → B** to move the current running task or shell command to the background. The task continues executing while you can type a new message or review earlier output. This is useful for long-running commands where you want to interact with the agent while waiting for the result.
 
 **Shell command history in normal mode** (v1.0.65+): The **↑/↓** arrow keys and **Ctrl+R** reverse search now include past shell commands (commands run with `!`) while you are in normal (non-shell) input mode. Previously you had to type `!` to enter shell mode before history worked. Now you can recall and re-run a shell command without switching modes first — useful for quickly repeating a build, test, or diagnostic command from earlier in the session.
+
+**Voice dictation (v1.0.81+)**: Press **Ctrl+Space** to toggle voice dictation and speak your prompt instead of typing it. This is useful for hands-free input or longer, more conversational prompts.
 
 **Inline image rendering** (v1.0.64+): The CLI can display images inline in the terminal when your terminal supports it. If an MCP tool, agent, or attachment returns an image, it is rendered directly in the conversation timeline rather than shown as a file path or URL. This works in terminals with image protocol support (such as iTerm2, Kitty, Wezterm, and tmux with appropriate configuration).
 
@@ -661,6 +686,14 @@ Use `/autopilot` when you want to flip between supervised and unsupervised opera
 > **Auto allow-all mode (v1.0.69+)**: In addition to the standard allow-all mode (which approves everything), the CLI now supports an **auto allow-all** mode that uses an LLM judge to evaluate each tool request. When enabled, the judge automatically approves requests it evaluates as acceptable, and asks you for manual confirmation only for requests it considers risky. This gives you a middle ground between full autopilot and fully supervised operation — most routine actions proceed automatically while unusual or potentially dangerous actions still surface for your review. As of v1.0.69-3, this mode requires experimental features to be enabled — use `/experimental on` or start the CLI with `--experimental` — then activate it with `/allow-all auto`. The previous `AUTO_APPROVAL` environment variable approach has been removed in favour of experimental mode.
 
 > **Read-only `gh` CLI commands (v1.0.46+)**: Read-only `gh` commands — such as `gh issue list`, `gh pr view`, `gh run status`, and other commands that don't write to GitHub — are **automatically approved** without a permission prompt. Only commands that write to GitHub (like creating issues, merging PRs) still require explicit approval. This reduces friction during exploratory sessions where you frequently check issue or PR status.
+
+The `/permissions` command (v1.0.78+) lets you switch between approval modes without leaving your session:
+
+```
+/permissions      # open the approval mode picker
+```
+
+Use `/permissions` as a shorthand for adjusting your current session's permission level — it surfaces the same choices as `/allow-all` but in an interactive picker.
 
 The `--effort` flag (shorthand for `--reasoning-effort`) controls how much computational reasoning the model applies to a request:
 
