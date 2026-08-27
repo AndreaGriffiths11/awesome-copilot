@@ -3,7 +3,7 @@ title: 'Automating with Hooks'
 description: 'Learn how to use hooks to automate lifecycle events like formatting, linting, and governance checks during Copilot agent sessions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-25
+lastUpdated: 2026-08-27
 estimatedReadingTime: '8 minutes'
 tags:
   - hooks
@@ -203,6 +203,8 @@ Hooks support two types: `"command"` for running local shell scripts, and `"http
 **powershell**: The command or script to execute on Windows systems. Either `bash` or `powershell` (or both) must be provided.
 
 **matcher** *(optional)*: A regular expression matched against the tool name. When present, the hook only fires for tools whose name fully matches the regex. For example, `"^bash$"` ensures the hook only runs for the `bash` tool, not for `edit` or other tools. This is particularly useful for `preToolUse` and `postToolUse` hooks where you want to target a specific tool.
+
+> **OpenTelemetry trace context (v1.0.81+)**: Hook inputs now include a `traceparent` field (and `tracestate` when vendor trace state is present) carrying the current OpenTelemetry trace context. Command hooks also receive these values as environment variables (`TRACEPARENT`, `TRACESTATE`). Use these to correlate hook-emitted spans with the parent Copilot session trace for end-to-end observability.
 
 > **Important (v1.0.36+)**: Prior to v1.0.36, the `matcher` field was silently ignored — hooks with a `matcher` fired for all tool calls regardless of the regex. After upgrading to v1.0.36 or later, only tool calls whose name fully matches the `matcher` regex will trigger the hook. Review any existing `preToolUse`/`postToolUse` hooks that use `matcher` to ensure they still fire as expected.
 
