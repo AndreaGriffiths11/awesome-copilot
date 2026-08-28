@@ -3,7 +3,7 @@ title: 'Automating with Hooks'
 description: 'Learn how to use hooks to automate lifecycle events like formatting, linting, and governance checks during Copilot agent sessions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-25
+lastUpdated: 2026-08-28
 estimatedReadingTime: '8 minutes'
 tags:
   - hooks
@@ -139,6 +139,24 @@ EOF
 ```
 
 > **How it works**: If your hook writes `{"additionalContext": "..."}` to stdout and exits with code `0`, the text is prepended to the model prompt for this turn. The hook can also write both `additionalContext` and `response` — if `response` is present, that wins and the model call is skipped.
+
+### OpenTelemetry Trace Context (v1.0.81+)
+
+Hooks can now participate in distributed traces. When Copilot is running with an active OpenTelemetry trace, hook inputs automatically include a `traceparent` field (and `tracestate` when vendor-specific trace state is present). For **command hooks**, the same values are also injected as environment variables (`TRACEPARENT` and `TRACESTATE`), so hook scripts can forward them to downstream services without parsing JSON.
+
+This makes it straightforward to correlate hook activity with agent spans in your observability platform:
+
+```bash
+#!/usr/bin/env bash
+# Forward the trace context to your audit service
+INPUT=$(cat)
+curl -s -X POST https://audit.example.com/copilot-events \
+  -H "Content-Type: application/json" \
+  -H "traceparent: ${TRACEPARENT}" \
+  -d "$INPUT" >/dev/null
+```
+
+> **Note**: `traceparent` and `tracestate` are only present when Copilot itself is running under an active OpenTelemetry trace (e.g., when you have configured an OTLP exporter). In sessions without tracing, these fields are omitted.
 
 ### Extension Hooks Merging
 
