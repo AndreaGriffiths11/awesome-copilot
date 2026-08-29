@@ -3,7 +3,7 @@ title: 'Installing and Using Plugins'
 description: 'Learn how to find, install, and manage plugins that extend GitHub Copilot CLI with reusable agents, skills, hooks, and integrations.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-24
+lastUpdated: 2026-08-29
 estimatedReadingTime: '8 minutes'
 tags:
   - plugins
@@ -198,6 +198,24 @@ copilot plugin marketplace update
 
 # Remove a plugin
 copilot plugin uninstall my-plugin
+```
+
+### The Plugins Dashboard *(v1.0.81+)*
+
+The **plugins dashboard** is a unified interactive view for managing all your Copilot customizations. Run any of these slash commands from an interactive session to open it:
+
+```
+/plugin      # View and manage installed plugins
+/mcp         # View and manage MCP servers
+/skills      # View available skills from installed plugins
+```
+
+The dashboard lets you install, update, and remove plugins; enable or disable individual MCP servers mid-session; and browse your available skills — all without leaving the Copilot session. 
+
+To opt out of the dashboard UI and revert to the older `copilot plugins` subcommand style, set:
+
+```bash
+export PLUGINS_DASHBOARD=false
 ```
 
 ### Loading Plugins from a Local Directory

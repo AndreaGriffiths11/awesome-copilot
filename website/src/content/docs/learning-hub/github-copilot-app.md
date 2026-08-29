@@ -3,7 +3,7 @@ title: 'Getting Started with the GitHub Copilot app'
 description: 'Learn about the GitHub Copilot app, a desktop experience built for agent-native development. Understand its key features and who it''s for.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-17
+lastUpdated: 2026-08-29
 estimatedReadingTime: '8 minutes'
 tags:
   - copilot-app
@@ -135,6 +135,14 @@ To use the GitHub Copilot app, you need:
 2. Install and launch the app
 3. Authenticate with your GitHub account
 4. Connect your repositories
+
+Once installed, you can also open the Copilot app from any terminal using the Copilot CLI *(v1.0.81+)*:
+
+```bash
+copilot app
+```
+
+This opens the Copilot app in the context of the current directory, making it easy to switch from terminal work to an agent session without navigating the UI manually.
 
 ### Creating Your First Session
 
