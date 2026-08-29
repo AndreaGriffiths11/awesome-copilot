@@ -3,7 +3,7 @@ title: 'Automating with Hooks'
 description: 'Learn how to use hooks to automate lifecycle events like formatting, linting, and governance checks during Copilot agent sessions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-25
+lastUpdated: 2026-08-29
 estimatedReadingTime: '8 minutes'
 tags:
   - hooks
@@ -213,6 +213,23 @@ Hooks support two types: `"command"` for running local shell scripts, and `"http
 **timeoutSec**: Maximum execution time in seconds (default: 30). The hook is killed if it exceeds this limit.
 
 **env**: Additional environment variables merged with the existing environment.
+
+#### OpenTelemetry trace context *(v1.0.81+)*
+
+Command hooks can now participate in distributed tracing. When OpenTelemetry tracing is active, the JSON input to every hook includes a `traceparent` field (and a `tracestate` field when vendor state is present) so that spans emitted by your hook script are correlated with the agent's trace:
+
+```json
+{
+  "event": "postToolUse",
+  "tool": "bash",
+  "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01",
+  "tracestate": "vendor=value"
+}
+```
+
+For `command` hooks, the same values are also injected as environment variables (`TRACEPARENT` and `TRACESTATE`) so shell scripts can forward them to child processes without parsing JSON.
+
+Use this to connect your hook scripts into an existing observability pipeline — for example, recording hook execution spans in the same trace as the agent session that triggered them.
 
 #### HTTP hooks (`type: "http"`)
 
