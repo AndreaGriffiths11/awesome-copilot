@@ -3,7 +3,7 @@ title: 'Installing and Using Plugins'
 description: 'Learn how to find, install, and manage plugins that extend GitHub Copilot CLI with reusable agents, skills, hooks, and integrations.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-24
+lastUpdated: 2026-08-30
 estimatedReadingTime: '8 minutes'
 tags:
   - plugins
@@ -225,6 +225,34 @@ When you install a plugin, its components become available to Copilot CLI automa
 - **MCP servers** extend the tools available to agents
 
 You don't need to do any additional configuration after installing — the plugin's components integrate seamlessly into your workflow. Plugins take effect immediately after installation without requiring a Copilot CLI restart.
+
+### Plugins Dashboard (v1.0.81+)
+
+The **plugins dashboard** is a unified interface for browsing and managing everything installed via plugins — agents, skills, and MCP servers — without leaving a Copilot session. Open it with any of the following slash commands:
+
+```
+/plugin    # open the plugins dashboard
+/mcp       # open directly to the MCP servers view
+/skills    # open directly to the skills view
+```
+
+The dashboard lets you browse what's installed, see which agents and skills came from which plugin, and inspect MCP server connection status — all in one place.
+
+To disable the dashboard and revert to the previous behaviour, set:
+
+```bash
+PLUGINS_DASHBOARD=false copilot
+```
+
+Or add it to your environment permanently if you prefer the classic `/plugin list` command approach.
+
+### Plugins in Headless (Non-Interactive) Runs (v1.0.81+)
+
+Agents, skills, and MCP servers contributed by installed plugins are now available when running Copilot in non-interactive prompt mode (`-p`). This means you can use `--agent <plugin>:<agent>` in automation scripts and CI pipelines without needing to pass `--plugin-dir` explicitly:
+
+```bash
+copilot -p "Review this PR for security issues" --agent security-review@my-plugin
+```
 
 ## Plugins from This Repository
 
