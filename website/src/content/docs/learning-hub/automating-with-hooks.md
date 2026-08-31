@@ -3,7 +3,7 @@ title: 'Automating with Hooks'
 description: 'Learn how to use hooks to automate lifecycle events like formatting, linting, and governance checks during Copilot agent sessions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-25
+lastUpdated: 2026-08-31
 estimatedReadingTime: '8 minutes'
 tags:
   - hooks
@@ -214,7 +214,25 @@ Hooks support two types: `"command"` for running local shell scripts, and `"http
 
 **env**: Additional environment variables merged with the existing environment.
 
-#### HTTP hooks (`type: "http"`)
+#### OpenTelemetry Trace Context (v1.0.81+)
+
+As of v1.0.81, hooks receive the current **OpenTelemetry trace context** so your hook scripts can emit correlated spans alongside Copilot's own telemetry.
+
+- **Command hooks** receive the trace context as environment variables: `TRACEPARENT` (and `TRACESTATE` when the span carries vendor state).
+- **All hook inputs** gain a `traceparent` field (and `tracestate` when present) in the JSON payload sent to the hook.
+
+This lets you correlate hook execution with the Copilot session in any OpenTelemetry-compatible observability backend:
+
+```bash
+#!/usr/bin/env bash
+# Use $TRACEPARENT to emit a child span tied to this Copilot session
+otel-cli span submit \
+  --traceparent "$TRACEPARENT" \
+  --name "copilot-hook-postToolUse" \
+  --status ok
+```
+
+
 
 Instead of running a local script, HTTP hooks POST a JSON payload to a configured URL. This is useful for integrating with webhooks, notification systems, or remote audit services — without needing a local script installed on every machine.
 
